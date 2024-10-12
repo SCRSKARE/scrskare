@@ -48,7 +48,7 @@
 
     /* Table styling */
 .registration-table {
-    width: 70%;
+    width: 60%;
     border-collapse: collapse;
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -56,7 +56,8 @@
 
 .registration-table th, .registration-table td {
     border: 1px solid #dee2e6;
-    padding: 7px;
-    text-align: left;
+    padding: 1px;
+    text-align: center;
+    font-size: 15px;
 }
 }
