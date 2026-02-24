@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+/* ───────────── Base ───────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+
+
+/* ───────────── Sci-Fi Login Panel Styles ───────────── */
+
+@keyframes sciFiGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 15px rgba(0, 255, 255, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), inset 0 0 30px rgba(0, 255, 255, 0.4);
+  }
+}
+
+.sci-fi-panel {
+  position: relative;
+  background: rgba(0, 10, 20, 0.3);
+  backdrop-filter: blur(5px);
+  /* Minimal blur to keep background clearer */
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(0, 255, 255, 0.6);
+  border-radius: 8px;
+  animation: sciFiGlow 4s ease-in-out infinite;
+  z-index: 10;
+
+  /* Creates the angled bottom corners effect using pseudo-elements */
+}
+
+/* Sci-fi Corner Cutouts Simulation */
+.sci-fi-panel::before,
+.sci-fi-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.sci-fi-panel::before {
+  left: -1px;
+  border-bottom: 2px solid rgba(0, 255, 255, 0.8);
+  border-left: 2px solid rgba(0, 255, 255, 0.8);
+  transform: skewX(-45deg);
+  transform-origin: bottom left;
+}
+
+.sci-fi-panel::after {
+  right: -1px;
+  border-bottom: 2px solid rgba(0, 255, 255, 0.8);
+  border-right: 2px solid rgba(0, 255, 255, 0.8);
+  transform: skewX(45deg);
+  transform-origin: bottom right;
+}
+
+.sci-fi-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(0, 255, 255, 0.5);
+  border-radius: 6px;
+  background: rgba(0, 20, 40, 0.5);
+  box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.sci-fi-input-wrapper:focus-within {
+  border-color: rgba(0, 255, 255, 1);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 15px rgba(0, 255, 255, 0.2);
+}
+
+.sci-fi-icon {
+  padding: 0 15px;
+  color: #0ff;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sci-fi-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 14px 15px 14px 0;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  outline: none;
+}
+
+.sci-fi-input::placeholder {
+  color: rgba(0, 255, 255, 0.4);
+}
+
+.sci-fi-label {
+  display: block;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  color: #fff;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+.sci-fi-btn {
+  position: relative;
+  width: 100%;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid #0ff;
+  border-radius: 4px;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  padding: 14px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.sci-fi-btn:hover {
+  background: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.6), inset 0 0 20px rgba(0, 255, 255, 0.4);
+  text-shadow: 0 0 10px #0ff;
+}
+
+.sci-fi-link-text {
+  font-family: 'Rajdhani', sans-serif;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+}
+
+.sci-fi-link {
+  color: #0ff;
+  text-decoration: none;
+  border-bottom: 1px solid #0ff;
+  padding-bottom: 1px;
+  margin-left: 5px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.sci-fi-link:hover {
+  color: #fff;
+  border-color: #fff;
+  text-shadow: 0 0 10px #0ff;
+}
+
+/* ───────────── Shared elements from other scenes ───────────── */
+@keyframes textFadeIn {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.5em;
+  }
+
+  100% {
+    opacity: 1;
+    letter-spacing: 0.3em;
+  }
+}
+
+@keyframes holoReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotateY(90deg);
+    filter: blur(20px) brightness(2);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05) rotateY(0deg);
+    filter: blur(3px) brightness(1.5);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateY(0deg);
+    filter: blur(0) brightness(1);
+  }
+}
+
+@keyframes holoGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(255, 160, 0, 0.15), 0 0 40px rgba(255, 160, 0, 0.08);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(255, 200, 0, 0.3), 0 0 80px rgba(255, 160, 0, 0.15), 0 0 120px rgba(255, 120, 0, 0.08);
+  }
+}
+
+.holo-logo {
+  animation: holoReveal 1.2s ease-out forwards, holoGlow 2s ease-in-out infinite 1.2s;
+  border-radius: 50%;
+}
+
+.presented-text {
+  animation: textFadeIn 1s ease-out forwards;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.particle {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ───────────── Mobile Responsive ───────────── */
+@media (max-width: 640px) {
+  .sci-fi-panel {
+    width: 95% !important;
+    max-width: 100% !important;
+    padding: 25px 20px !important;
+  }
+
+  .sci-fi-btn {
+    padding: 12px !important;
+    font-size: 0.65rem !important;
+  }
+
+  h1,
+  h2 {
+    font-size: clamp(0.9rem, 4vw, 1.2rem) !important;
+  }
+
+  h3 {
+    font-size: clamp(0.75rem, 3vw, 1rem) !important;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  th,
+  td {
+    padding: 8px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Stack flex containers */
+  .flex-responsive {
+    flex-direction: column !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .sci-fi-panel {
+    padding: 20px 15px !important;
+    border-radius: 10px !important;
+  }
+}
