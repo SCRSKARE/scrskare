@@ -14,6 +14,7 @@ const navItems = [
     { path: '/admin/attendance', label: 'ATTENDANCE', icon: '📋' },
     { path: '/admin/evaluation', label: 'EVALUATION', icon: '⚖️' },
     { path: '/admin/timeline', label: 'TIMELINE', icon: '⏳' },
+    { path: '/admin/quests', label: 'QUESTS', icon: '🏆' },
     { path: '/admin/announcements', label: 'ANNOUNCE', icon: '📢' },
     { path: '/admin/audio', label: 'AUDIO', icon: '🎵' },
     { path: '/admin/reports', label: 'REPORTS', icon: '▤' },

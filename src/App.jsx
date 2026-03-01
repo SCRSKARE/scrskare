@@ -22,6 +22,7 @@ import AdminSelections from './components/admin/AdminSelections';
 import AdminSubmissions from './components/admin/AdminSubmissions';
 import AdminReviews from './components/admin/AdminReviews';
 import AdminAnnouncements from './components/admin/AdminAnnouncements';
+import AdminQuests from './components/admin/AdminQuests';
 import AdminReports from './components/admin/AdminReports';
 import AdminTimeline from './components/admin/AdminTimeline';
 import AdminAttendance from './components/admin/AdminAttendance';
@@ -80,6 +81,7 @@ export default function App() {
             <Route path="/admin/attendance" element={<AdminAttendance />} />
             <Route path="/admin/evaluation" element={<AdminEvaluation />} />
             <Route path="/admin/timeline" element={<AdminTimeline />} />
+            <Route path="/admin/quests" element={<AdminQuests />} />
             <Route path="/admin/announcements" element={<AdminAnnouncements />} />
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/audio" element={<AdminAudio />} />

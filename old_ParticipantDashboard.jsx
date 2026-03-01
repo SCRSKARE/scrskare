@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/firebaseClient';
-import { collection, query, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
+import { supabase } from '../../lib/supabaseClient';
+
+import { dbGet } from '../../lib/dbProxy';
 import { useNavigate } from 'react-router-dom';
 
 const K = {
@@ -16,7 +17,7 @@ const K = {
 };
 
 const BUJJI_FAQS = [
-    { q: "What is DevFest 2.0?", a: "DevFest 2.0 – Kalki 2898 AD is a 24-hour hackathon where warriors of Shambhala code their way to glory! Teams compete to solve real-world problems with innovative solutions." },
+    { q: "What is DevFest 2.0?", a: "DevFest 2.0 ΓÇô Kalki 2898 AD is a 24-hour hackathon where warriors of Shambhala code their way to glory! Teams compete to solve real-world problems with innovative solutions." },
     { q: "How big can teams be?", a: "Each team can have 2-4 members. Choose your allies wisely, warrior! You'll need a good mix of skills to survive The Complex." },
     { q: "What should we bring?", a: "Your laptop, charger, extension box, and warrior spirit! We provide the WiFi, power, and snacks. Bujji recommends bringing a water bottle and earphones too!" },
     { q: "Can we use pre-built code?", a: "Open-source libraries and frameworks are allowed, but your core solution must be built during the hackathon. Bujji's watching! No pre-built projects." },
@@ -32,16 +33,13 @@ export default function ParticipantDashboard() {
 
     useEffect(() => {
         const load = async () => {
+            const { data: ann } = await supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(3);
+            if (ann) setAnnouncements(ann);
             try {
-                const annQ = query(collection(db, 'announcements'), orderBy('created_at', 'desc'), limit(3));
-                const annSnap = await getDocs(annQ);
-                setAnnouncements(annSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-            } catch { }
-
-            try {
-                const tlSnap = await getDoc(doc(db, 'event_timeline', 'global'));
-                if (tlSnap.exists() && tlSnap.data().items) {
-                    setTimeline(tlSnap.data().items);
+                const data = await dbGet('teams?team_code=eq.__TIMELINE__&select=members');
+                if (Array.isArray(data) && data.length > 0 && data[0].members) {
+                    const tl = typeof data[0].members === 'string' ? JSON.parse(data[0].members) : data[0].members;
+                    if (tl && tl.length > 0) setTimeline(tl);
                 }
             } catch { /* fallback to empty timeline */ }
         };
@@ -49,11 +47,12 @@ export default function ParticipantDashboard() {
     }, []);
 
     const team = profile?.teams;
-    const members = typeof team?.members === 'string' ? JSON.parse(team.members) : (team?.members || []);
+    const members = team?.members ? (typeof team.members === 'string' ? JSON.parse(team.members) : team.members) : [];
 
+    // Timeline from admin config only
     const timelineData = timeline.map((t) => ({ time: t.time || 'TBA', title: t.title, desc: t.description, is_current: t.is_current }));
 
-    const icons = ['🚀', '🎯', '⚔️', '💻', '🍱', '🔍', '🌙', '⚡', '🎤', '🏆', '🌟'];
+    const icons = ['≡ƒÜ¬', '≡ƒô»', 'ΓÜö∩╕Å', '≡ƒÆ╗', '≡ƒì¢', '≡ƒöì', '≡ƒîÖ', 'ΓÜí', '≡ƒÄñ', '≡ƒÅå', '≡ƒîƒ'];
 
     const SectionTitle = ({ icon, title, subtitle }) => (
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
@@ -67,7 +66,7 @@ export default function ParticipantDashboard() {
     return (
         <div style={{ color: '#fff', fontFamily: "'Rajdhani', sans-serif" }}>
 
-            {/* ═══════════ HERO ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ HERO ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center' }}>
                 {/* Presented By + SCRS Logo */}
                 <div style={{ marginBottom: '30px' }}>
@@ -104,7 +103,7 @@ export default function ParticipantDashboard() {
                     background: K.card, border: `2px solid ${K.border}`, borderRadius: '12px',
                     backdropFilter: 'blur(10px)', boxShadow: '0 0 40px rgba(212,168,83,0.08)',
                 }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '6px' }}>🛡️</div>
+                    <div style={{ fontSize: '2rem', marginBottom: '6px' }}>≡ƒ¢í∩╕Å</div>
                     <h3 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '1.1rem', color: K.gold, letterSpacing: '0.12em', margin: '0 0 5px' }}>
                         {team?.name || 'TEAM NOT ASSIGNED'}
                     </h3>
@@ -113,7 +112,7 @@ export default function ParticipantDashboard() {
                         background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.25)', color: K.cyan,
                         fontFamily: "'Orbitron', sans-serif", letterSpacing: '0.1em', marginBottom: '15px',
                     }}>
-                        CODE: {team?.team_code || '—'}
+                        CODE: {team?.team_code || 'ΓÇö'}
                     </div>
 
                     <div style={{ borderTop: `1px solid ${K.border}`, paddingTop: '12px' }}>
@@ -130,14 +129,14 @@ export default function ParticipantDashboard() {
 
             </section>
 
-            {/* ═══════════ ANNOUNCEMENTS ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ ANNOUNCEMENTS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             {announcements.length > 0 && (
                 <section style={{ padding: '25px 20px', background: 'rgba(212,168,83,0.06)', borderTop: `1px solid ${K.border}`, borderBottom: `1px solid ${K.border}` }}>
                     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
                         {announcements.map((a) => (
                             <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 0' }}>
                                 <span style={{ color: a.priority === 'urgent' ? '#ff6b6b' : a.priority === 'warning' ? '#fbbf24' : K.cyan, fontSize: '0.8rem' }}>
-                                    {a.priority === 'urgent' ? '🔴' : a.priority === 'warning' ? '⚠️' : '📢'}
+                                    {a.priority === 'urgent' ? '≡ƒö┤' : a.priority === 'warning' ? 'ΓÜá∩╕Å' : '≡ƒôó'}
                                 </span>
                                 <span style={{ color: K.text, fontSize: '1rem' }}>{a.message}</span>
                             </div>
@@ -146,17 +145,17 @@ export default function ParticipantDashboard() {
                 </section>
             )}
 
-            {/* ═══════════ THE MISSION ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ THE MISSION ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <section style={{ padding: '80px 20px', maxWidth: '1100px', margin: '0 auto' }}>
-                <SectionTitle icon="⚔️" title="THE MISSION" subtitle="What awaits warriors of Shambhala" />
+                <SectionTitle icon="ΓÜö∩╕Å" title="THE MISSION" subtitle="What awaits warriors of Shambhala" />
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                     {[
-                        { icon: '🎯', title: 'Bounty Missions', desc: 'Navigate through challenging real-world bounty missions. Choose your battleground wisely.' },
-                        { icon: '⏱️', title: '24-Hour Sprint', desc: 'Survive the 24-hour coding marathon. Build, iterate, and deploy under pressure.' },
-                        { icon: '⚖️', title: 'Expert Judging', desc: 'Your solutions evaluated by industry experts and seasoned judges on multiple criteria.' },
-                        { icon: '🧠', title: 'Mentorship', desc: 'Guidance from industry veterans and faculty mentors throughout the event.' },
-                        { icon: '🌐', title: 'Networking', desc: 'Connect with fellow developers, share ideas, and forge alliances that last.' },
-                        { icon: '📜', title: 'Certification', desc: 'Every warrior receives an official certificate of participation from SCRS.' },
+                        { icon: '≡ƒÄ»', title: 'Bounty Missions', desc: 'Navigate through challenging real-world bounty missions. Choose your battleground wisely.' },
+                        { icon: 'ΓÅ▒∩╕Å', title: '24-Hour Sprint', desc: 'Survive the 24-hour coding marathon. Build, iterate, and deploy under pressure.' },
+                        { icon: 'ΓÜû∩╕Å', title: 'Expert Judging', desc: 'Your solutions evaluated by industry experts and seasoned judges on multiple criteria.' },
+                        { icon: '≡ƒº¡', title: 'Mentorship', desc: 'Guidance from industry veterans and faculty mentors throughout the event.' },
+                        { icon: '≡ƒîÉ', title: 'Networking', desc: 'Connect with fellow developers, share ideas, and forge alliances that last.' },
+                        { icon: '≡ƒô£', title: 'Certification', desc: 'Every warrior receives an official certificate of participation from SCRS.' },
                     ].map((f, i) => (
                         <div key={i} style={{
                             padding: '28px', background: K.card, border: `1px solid ${K.border}`, borderRadius: '10px',
@@ -173,9 +172,9 @@ export default function ParticipantDashboard() {
                 </div>
             </section>
 
-            {/* ═══════════ PRIZE POOL ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ PRIZE POOL ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <section style={{ padding: '80px 20px' }}>
-                <SectionTitle icon="💎" title="THE BOUNTY" subtitle="Total Prize Pool: ₹6,000" />
+                <SectionTitle icon="≡ƒÆÄ" title="THE BOUNTY" subtitle="Total Prize Pool: Γé╣6,000" />
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', maxWidth: '400px', margin: '0 auto' }}>
                     {/* 1st Place */}
                     <div style={{
@@ -184,8 +183,8 @@ export default function ParticipantDashboard() {
                         borderRadius: '14px', boxShadow: `0 0 40px rgba(212,168,83,0.15)`, transform: 'scale(1.05)',
                     }}>
                         <h3 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.9rem', color: K.gold, letterSpacing: '0.15em', marginBottom: '15px' }}>SUPREME WARRIOR</h3>
-                        <div style={{ fontSize: '3.5rem', marginBottom: '10px' }}>🏆</div>
-                        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '2.5rem', color: K.gold, fontWeight: 700 }}>₹3,000</div>
+                        <div style={{ fontSize: '3.5rem', marginBottom: '10px' }}>≡ƒÅå</div>
+                        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '2.5rem', color: K.gold, fontWeight: 700 }}>Γé╣3,000</div>
                         <div style={{ display: 'inline-block', padding: '5px 18px', borderRadius: '20px', marginTop: '10px', background: `rgba(212,168,83,0.15)`, border: `1px solid ${K.gold}40`, fontFamily: "'Orbitron', sans-serif", fontSize: '0.65rem', color: K.gold, letterSpacing: '0.15em' }}>1ST PLACE</div>
                     </div>
                     {/* 2nd Place */}
@@ -194,8 +193,8 @@ export default function ParticipantDashboard() {
                         background: K.card, border: '1px solid rgba(192,192,192,0.3)', borderRadius: '12px',
                     }}>
                         <h3 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', color: '#c0c0c0', letterSpacing: '0.12em', marginBottom: '15px' }}>SILVER WARRIOR</h3>
-                        <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🥈</div>
-                        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '2rem', color: '#c0c0c0', fontWeight: 700 }}>₹2,000</div>
+                        <div style={{ fontSize: '3rem', marginBottom: '10px' }}>≡ƒÑê</div>
+                        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '2rem', color: '#c0c0c0', fontWeight: 700 }}>Γé╣2,000</div>
                         <div style={{ fontFamily: "'Rajdhani', sans-serif", color: K.dim, fontSize: '0.9rem', marginTop: '5px' }}>2ND PLACE</div>
                     </div>
                     {/* 3rd Place */}
@@ -204,8 +203,8 @@ export default function ParticipantDashboard() {
                         background: K.card, border: '1px solid rgba(205,127,50,0.3)', borderRadius: '12px',
                     }}>
                         <h3 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', color: '#cd7f32', letterSpacing: '0.12em', marginBottom: '15px' }}>BRONZE WARRIOR</h3>
-                        <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🥉</div>
-                        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '2rem', color: '#cd7f32', fontWeight: 700 }}>₹1,000</div>
+                        <div style={{ fontSize: '3rem', marginBottom: '10px' }}>≡ƒÑë</div>
+                        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '2rem', color: '#cd7f32', fontWeight: 700 }}>Γé╣1,000</div>
                         <div style={{ fontFamily: "'Rajdhani', sans-serif", color: K.dim, fontSize: '0.9rem', marginTop: '5px' }}>3RD PLACE</div>
                     </div>
                 </div>
@@ -216,7 +215,7 @@ export default function ParticipantDashboard() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         {['Official Certificate of Participation', 'Mentoring by Experts', 'Free Refreshments', '1 EE Credit'].map((item, i) => (
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0' }}>
-                                <span style={{ color: K.gold }}>◆</span>
+                                <span style={{ color: K.gold }}>Γùê</span>
                                 <span style={{ color: K.text, fontSize: '0.95rem' }}>{item}</span>
                             </div>
                         ))}
@@ -224,14 +223,14 @@ export default function ParticipantDashboard() {
                 </div>
             </section>
 
-            {/* ═══════════ BOUNTY HUNT ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ BOUNTY HUNT ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <section style={{ padding: '80px 20px', maxWidth: '800px', margin: '0 auto' }}>
-                <SectionTitle icon="🗺️" title="BOUNTY HUNT" subtitle="The hidden challenge within The Complex" />
+                <SectionTitle icon="≡ƒù║∩╕Å" title="BOUNTY HUNT" subtitle="The hidden challenge within The Complex" />
                 <div style={{
                     padding: '35px', background: K.card, border: `1px solid ${K.border}`, borderRadius: '12px',
                     textAlign: 'center', boxShadow: '0 0 30px rgba(0,255,255,0.05)',
                 }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🏴‍☠️</div>
+                    <div style={{ fontSize: '3rem', marginBottom: '15px' }}>≡ƒÅ┤ΓÇìΓÿá∩╕Å</div>
                     <h3 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '1rem', color: K.cyan, letterSpacing: '0.1em', margin: '0 0 12px' }}>THE QUEST OF SHAMBHALA</h3>
                     <p style={{ color: K.text, fontSize: '1.05rem', lineHeight: 1.7, maxWidth: '600px', margin: '0 auto 20px' }}>
                         Between coding sessions, embark on a thrilling bounty hunt across the venue!
@@ -242,14 +241,14 @@ export default function ParticipantDashboard() {
                         background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.2)',
                         fontFamily: "'Orbitron', sans-serif", fontSize: '0.7rem', color: K.cyan, letterSpacing: '0.15em',
                     }}>
-                        MIDNIGHT
+                        TIMINGS TO BE ANNOUNCED
                     </div>
                 </div>
             </section>
 
-            {/* ═══════════ TIMELINE (from DB) ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ TIMELINE (from DB) ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <section style={{ padding: '80px 20px' }}>
-                <SectionTitle icon="⏳" title="THE JOURNEY" subtitle="Your path through The Complex" />
+                <SectionTitle icon="ΓÅ│" title="THE JOURNEY" subtitle="Your path through The Complex" />
                 <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative' }}>
                     <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 0, bottom: 0, width: '2px', background: `linear-gradient(180deg, transparent, ${K.gold}40, ${K.gold}40, transparent)` }} />
                     {timelineData.map((item, i) => (
@@ -262,7 +261,7 @@ export default function ParticipantDashboard() {
                                 boxShadow: item.is_current ? '0 0 15px rgba(0,255,255,0.4)' : 'none',
                                 animation: item.is_current ? 'pulse 2s infinite' : 'none',
                             }}>
-                                {icons[i] || '⭐'}
+                                {icons[i] || 'Γ¡É'}
                             </div>
                             <div style={{
                                 width: 'calc(50% - 50px)', padding: '18px 22px',
@@ -271,7 +270,7 @@ export default function ParticipantDashboard() {
                                 textAlign: i % 2 === 0 ? 'right' : 'left',
                                 boxShadow: item.is_current ? '0 0 20px rgba(0,255,255,0.1)' : 'none',
                             }}>
-                                {item.is_current && <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.5rem', color: K.cyan, letterSpacing: '0.2em', marginBottom: '4px' }}>▶ HAPPENING NOW</div>}
+                                {item.is_current && <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.5rem', color: K.cyan, letterSpacing: '0.2em', marginBottom: '4px' }}>Γû╢ HAPPENING NOW</div>}
                                 <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.6rem', color: K.gold, letterSpacing: '0.12em', marginBottom: '4px' }}>{item.time}</div>
                                 <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.85rem', color: '#fff', letterSpacing: '0.05em', marginBottom: '4px' }}>{item.title}</div>
                                 <div style={{ color: K.dim, fontSize: '0.9rem' }}>{item.desc}</div>
@@ -281,9 +280,9 @@ export default function ParticipantDashboard() {
                 </div>
             </section>
 
-            {/* ═══════════ BUJJI FAQ ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ BUJJI FAQ ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <section style={{ padding: '80px 20px', maxWidth: '800px', margin: '0 auto' }}>
-                <SectionTitle icon="🤖" title="ASK BUJJI" subtitle="Your AI companion answers all questions" />
+                <SectionTitle icon="≡ƒñû" title="ASK BUJJI" subtitle="Your AI companion answers all questions" />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {BUJJI_FAQS.map((faq, i) => (
                         <div key={i} style={{ background: K.card, border: `1px solid ${openFaq === i ? K.cyan + '50' : K.border}`, borderRadius: '10px', overflow: 'hidden', transition: 'all 0.3s ease' }}>
@@ -293,7 +292,7 @@ export default function ParticipantDashboard() {
                             </button>
                             {openFaq === i && (
                                 <div style={{ padding: '0 22px 20px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                    <div style={{ flexShrink: 0, width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,255,255,0.1)', border: '1px solid rgba(0,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>🤖</div>
+                                    <div style={{ flexShrink: 0, width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,255,255,0.1)', border: '1px solid rgba(0,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>≡ƒñû</div>
                                     <div>
                                         <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.55rem', color: K.cyan, letterSpacing: '0.15em', display: 'block', marginBottom: '5px' }}>BUJJI SAYS:</span>
                                         <p style={{ color: K.text, fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>{faq.a}</p>
@@ -305,24 +304,24 @@ export default function ParticipantDashboard() {
                 </div>
             </section>
 
-            {/* ═══════════ ACTIONS ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ ACTIONS ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <section style={{ padding: '60px 20px' }}>
                 <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <button onClick={() => navigate('/problems')} style={{ padding: '14px 35px', borderRadius: '8px', cursor: 'pointer', background: `linear-gradient(135deg, rgba(212,168,83,0.2), rgba(212,168,83,0.05))`, border: `1px solid ${K.gold}60`, color: K.gold, fontFamily: "'Orbitron', sans-serif", fontSize: '0.75rem', letterSpacing: '0.12em', transition: 'all 0.3s' }}
                         onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}>
-                        ⚔️ BROWSE PROBLEMS
+                        ΓÜö∩╕Å BROWSE PROBLEMS
                     </button>
                     <button onClick={() => navigate('/activities')} style={{ padding: '14px 35px', borderRadius: '8px', cursor: 'pointer', background: 'rgba(0,255,255,0.05)', border: '1px solid rgba(0,255,255,0.25)', color: K.cyan, fontFamily: "'Orbitron', sans-serif", fontSize: '0.75rem', letterSpacing: '0.12em', transition: 'all 0.3s' }}
                         onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}>
-                        🎮 ACTIVITIES
+                        ≡ƒÄ« ACTIVITIES
                     </button>
                 </div>
             </section>
 
-            {/* ═══════════ FOOTER ═══════════ */}
+            {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ FOOTER ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
             <footer style={{ padding: '40px 20px', textAlign: 'center', borderTop: `1px solid ${K.border}`, background: 'rgba(0,0,0,0.3)' }}>
-                <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.7rem', color: K.gold, letterSpacing: '0.15em', marginBottom: '8px' }}>DEVFEST 2.0 – KALKI 2898 AD</div>
-                <div style={{ color: K.dim, fontSize: '0.85rem' }}>Organized by SCRS &nbsp;•&nbsp; Powered by Shambhala Tech</div>
+                <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.7rem', color: K.gold, letterSpacing: '0.15em', marginBottom: '8px' }}>DEVFEST 2.0 ΓÇô KALKI 2898 AD</div>
+                <div style={{ color: K.dim, fontSize: '0.85rem' }}>Organized by SCRS &nbsp;ΓÇó&nbsp; Powered by Shambhala Tech</div>
             </footer>
 
             <style>{`
