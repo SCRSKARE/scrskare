@@ -55,7 +55,7 @@ export default function ActivitiesPage() {
             <div style={sectionStyle}>
                 <h3 style={headingStyle}>SCHEDULE</h3>
                 {[
-                    { time: 'MIDNIGHT', activity: 'ROUND 1 - Powerplay', desc: '20 questions. IPL 2024 and 2025 related questions and T20WC 2024 questions. +1 for correct answer, -0.5 negative marking.' },
+                    { time: 'MIDNIGHT', activity: 'ROUND 1 - Powerplay', desc: '20 questions. Cricket related questions. +1 for correct answer, -0.5 negative marking.' },
                     { time: 'MIDNIGHT', activity: "ROUND 2 - The Director's Cut: Can You Guess the Film?", desc: '20 questions. We give a simple storyline, participants need to guess the movie name. +1 for correct answer, no negative marking.' },
                     { time: 'MIDNIGHT', activity: 'ROUND 3 - Blockbuster Beats: Guess the Movie Soundtrack', desc: '20 questions. We will play a song tune without lyrics and participants need to guess. Guess song and movie for +2, only movie for +1. No negative marking.' },
                 ].map((item, i) => (
