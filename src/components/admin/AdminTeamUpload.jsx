@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { db } from '../../lib/firebaseClient';
-import { collection, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, writeBatch, doc, getDocs, query, where } from 'firebase/firestore';
 
 const S = { gold: '#ff8c00', card: 'rgba(15,10,5,0.85)', border: 'rgba(255,140,0,0.2)', text: 'rgba(255,255,255,0.85)', dim: 'rgba(255,255,255,0.5)' };
 
@@ -193,20 +193,46 @@ export default function AdminTeamUpload() {
         setResult(null);
 
         try {
+            // Fetch all existing teams to check for duplicates by team_code
+            const existingSnap = await getDocs(collection(db, 'teams'));
+            const existingByCode = {};
+            existingSnap.docs.forEach(d => {
+                const data = d.data();
+                if (data.team_code) {
+                    existingByCode[data.team_code.toUpperCase()] = d.id;
+                }
+            });
+
             const batch = writeBatch(db);
-            let count = 0;
+            let created = 0;
+            let updated = 0;
 
             preview.forEach(team => {
-                if (count >= 450) return; // safety limit
-                const ref = doc(collection(db, 'teams'));
-                batch.set(ref, {
-                    name: team.name,
-                    team_code: team.team_code,
-                    members: team.members,
-                    is_active: true,
-                    created_at: serverTimestamp(),
-                });
-                count++;
+                if (created + updated >= 450) return; // safety limit
+                const code = team.team_code.toUpperCase();
+                const existingId = existingByCode[code];
+
+                if (existingId) {
+                    // Update existing team
+                    const ref = doc(db, 'teams', existingId);
+                    batch.update(ref, {
+                        name: team.name,
+                        members: team.members,
+                        is_active: true,
+                    });
+                    updated++;
+                } else {
+                    // Create new team
+                    const ref = doc(collection(db, 'teams'));
+                    batch.set(ref, {
+                        name: team.name,
+                        team_code: team.team_code,
+                        members: team.members,
+                        is_active: true,
+                        created_at: serverTimestamp(),
+                    });
+                    created++;
+                }
             });
 
             const timeoutPromise = new Promise((_, reject) =>
@@ -215,7 +241,10 @@ export default function AdminTeamUpload() {
 
             await Promise.race([batch.commit(), timeoutPromise]);
 
-            setResult({ success: count, failed: preview.length - count, error: '' });
+            const msg = [];
+            if (created > 0) msg.push(`${created} new`);
+            if (updated > 0) msg.push(`${updated} updated`);
+            setResult({ success: created + updated, failed: 0, error: '', detail: msg.join(', ') });
         } catch (e) {
             console.error('Upload failed:', e);
             setResult({ success: 0, failed: preview.length, error: e.message });
@@ -255,7 +284,7 @@ export default function AdminTeamUpload() {
             {result && (
                 <div style={{ padding: '15px 20px', background: result.failed > 0 ? 'rgba(255,50,50,0.08)' : 'rgba(74,222,128,0.08)', border: `1px solid ${result.failed > 0 ? 'rgba(255,50,50,0.3)' : 'rgba(74,222,128,0.3)'}`, borderRadius: '8px', marginBottom: '20px' }}>
                     <span style={{ color: result.failed > 0 ? '#ff6b6b' : '#4ade80', fontFamily: "'Orbitron', sans-serif", fontSize: '0.75rem' }}>
-                        {result.success > 0 ? `✅ ${result.success} uploaded` : ''}{result.failed > 0 ? ` ❌ ${result.failed} failed` : ''}
+                        {result.success > 0 ? `✅ ${result.success} uploaded${result.detail ? ` (${result.detail})` : ''}` : ''}{result.failed > 0 ? ` ❌ ${result.failed} failed` : ''}
                     </span>
                     {result.error && (
                         <div style={{ marginTop: '8px', color: '#ff6b6b', fontSize: '0.85rem', fontFamily: "'Rajdhani', sans-serif" }}>
