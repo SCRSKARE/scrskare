@@ -48,10 +48,25 @@ export default function LoginPage() {
         setSubmitting(true);
         try {
             sessionStorage.removeItem('intro_seen');
+            let result;
             if (isEmailMode) {
-                await signIn(credential, password);
+                result = await signIn(credential, password);
             } else {
-                await teamLogin(credential);
+                result = await teamLogin(credential);
+            }
+            // Determine destination from the returned profile
+            let role = 'participant';
+            if (result?.profile?.role) role = result.profile.role;
+            let dest = '/dashboard';
+            if (role === 'admin') dest = '/admin';
+            else if (role === 'coordinator') dest = '/admin/teams';
+
+            const alreadySeen = sessionStorage.getItem('intro_seen');
+            if (alreadySeen) {
+                navigate(dest, { replace: true });
+            } else {
+                setPendingRedirect(dest);
+                setShowIntro(true);
             }
         } catch (err) {
             setError(err.message || 'Invalid credentials');
