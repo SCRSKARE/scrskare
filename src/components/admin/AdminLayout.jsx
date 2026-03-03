@@ -2,28 +2,29 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useState } from 'react';
 
-const navItems = [
-    { path: '/admin', label: 'DASHBOARD', icon: '⬡', end: true },
-    { path: '/admin/problems', label: 'PROBLEMS', icon: '◈' },
-    { path: '/admin/teams', label: 'TEAMS', icon: '⬢' },
-    { path: '/admin/upload-teams', label: 'UPLOAD', icon: '📤' },
-    { path: '/admin/credentials', label: 'CREDENTIALS', icon: '🔑' },
-    { path: '/admin/selections', label: 'SELECTIONS', icon: '◉' },
-
-    { path: '/admin/reviews', label: 'REVIEWS', icon: '★' },
-    { path: '/admin/attendance', label: 'ATTENDANCE', icon: '📋' },
-    { path: '/admin/evaluation', label: 'EVALUATION', icon: '⚖️' },
-    { path: '/admin/timeline', label: 'TIMELINE', icon: '⏳' },
-    { path: '/admin/quests', label: 'QUESTS', icon: '🏆' },
-    { path: '/admin/announcements', label: 'ANNOUNCE', icon: '📢' },
-    { path: '/admin/audio', label: 'AUDIO', icon: '🎵' },
-    { path: '/admin/reports', label: 'REPORTS', icon: '▤' },
+const allNavItems = [
+    { path: '/admin', label: 'DASHBOARD', icon: '⬡', end: true, roles: ['admin'] },
+    { path: '/admin/problems', label: 'PROBLEMS', icon: '◈', roles: ['admin'] },
+    { path: '/admin/teams', label: 'TEAMS', icon: '⬢', roles: ['admin', 'coordinator'] },
+    { path: '/admin/upload-teams', label: 'UPLOAD', icon: '📤', roles: ['admin'] },
+    { path: '/admin/credentials', label: 'CREDENTIALS', icon: '🔑', roles: ['admin'] },
+    { path: '/admin/selections', label: 'SELECTIONS', icon: '◉', roles: ['admin'] },
+    { path: '/admin/reviews', label: 'REVIEWS', icon: '★', roles: ['admin'] },
+    { path: '/admin/attendance', label: 'ATTENDANCE', icon: '📋', roles: ['admin', 'coordinator'] },
+    { path: '/admin/evaluation', label: 'EVALUATION', icon: '⚖️', roles: ['admin'] },
+    { path: '/admin/timeline', label: 'TIMELINE', icon: '⏳', roles: ['admin'] },
+    { path: '/admin/quests', label: 'QUESTS', icon: '🏆', roles: ['admin', 'coordinator'] },
+    { path: '/admin/announcements', label: 'ANNOUNCE', icon: '📢', roles: ['admin'] },
+    { path: '/admin/audio', label: 'AUDIO', icon: '🎵', roles: ['admin'] },
+    { path: '/admin/reports', label: 'REPORTS', icon: '▤', roles: ['admin', 'coordinator'] },
 ];
 
 export default function AdminLayout() {
     const { signOut, profile } = useAuth();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const role = profile?.role || 'admin';
+    const navItems = allNavItems.filter(item => item.roles.includes(role));
 
     const handleLogout = async () => {
         await signOut();
@@ -38,7 +39,7 @@ export default function AdminLayout() {
                 background: 'rgba(20,8,0,0.98)', borderBottom: '1px solid rgba(255,140,0,0.2)',
                 zIndex: 200, alignItems: 'center', justifyContent: 'space-between', padding: '0 15px',
             }}>
-                <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', color: '#ff8c00', fontWeight: 700 }}>ADMIN</span>
+                <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', color: '#ff8c00', fontWeight: 700 }}>{role === 'coordinator' ? 'COORDINATOR' : 'ADMIN'}</span>
                 <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: '#ff8c00', fontSize: '1.4rem', cursor: 'pointer' }}>
                     {sidebarOpen ? '✕' : '☰'}
                 </button>
@@ -58,14 +59,14 @@ export default function AdminLayout() {
             }}>
                 {/* Logo */}
                 <div style={{ padding: '20px 15px', borderBottom: '1px solid rgba(255,140,0,0.15)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ff8c00', letterSpacing: '0.08em', textShadow: '0 0 15px rgba(255,140,0,0.4)' }}>ADMIN PORTAL</div>
-                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.7rem', color: 'rgba(255,200,150,0.4)', letterSpacing: '0.1em', marginTop: '3px' }}>CONTROL CENTER</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ff8c00', letterSpacing: '0.08em', textShadow: '0 0 15px rgba(255,140,0,0.4)' }}>{role === 'coordinator' ? 'COORDINATOR' : 'ADMIN PORTAL'}</div>
+                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.7rem', color: 'rgba(255,200,150,0.4)', letterSpacing: '0.1em', marginTop: '3px' }}>{role === 'coordinator' ? 'LIMITED ACCESS' : 'CONTROL CENTER'}</div>
                 </div>
 
                 {/* Admin Info */}
                 <div style={{ padding: '10px 15px', borderBottom: '1px solid rgba(255,140,0,0.1)' }}>
                     <div style={{ fontSize: '0.55rem', color: 'rgba(255,140,0,0.5)', letterSpacing: '0.1em', marginBottom: '3px' }}>LOGGED IN AS</div>
-                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: '#fff' }}>{profile?.full_name || 'Admin'}</div>
+                    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: '#fff' }}>{profile?.full_name || (role === 'coordinator' ? 'Coordinator' : 'Admin')}</div>
                 </div>
 
                 {/* Nav */}

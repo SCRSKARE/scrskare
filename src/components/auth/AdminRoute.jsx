@@ -44,7 +44,7 @@ export default function AdminRoute({ children }) {
         return <Navigate to="/login" replace />;
     }
 
-    if (profile?.role !== 'admin') {
+    if (profile?.role !== 'admin' && profile?.role !== 'coordinator') {
         return <Navigate to="/dashboard" replace />;
     }
 

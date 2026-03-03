@@ -23,7 +23,9 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (!authLoading && user && profile) {
-            const dest = profile.role === 'admin' ? '/admin' : '/dashboard';
+            let dest = '/dashboard';
+            if (profile.role === 'admin') dest = '/admin';
+            else if (profile.role === 'coordinator') dest = '/admin/teams';
             const alreadySeen = sessionStorage.getItem('intro_seen');
             if (alreadySeen) {
                 navigate(dest, { replace: true });

@@ -234,6 +234,7 @@ export function AuthProvider({ children }) {
         signOut,
         resetPassword,
         isAdmin: profile?.role === 'admin',
+        isCoordinator: profile?.role === 'coordinator',
         isParticipant: profile?.role === 'participant',
     };
 
