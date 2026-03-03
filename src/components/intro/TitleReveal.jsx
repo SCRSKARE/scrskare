@@ -123,16 +123,16 @@ export default function TitleReveal() {
                 <h1
                     style={{
                         fontFamily: "'Orbitron', sans-serif",
-                        fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                        fontSize: 'clamp(1.5rem, 5vw, 5rem)',
                         fontWeight: 800,
-                        color: '#dfcfb1', // Aged bone/gold color
+                        color: '#dfcfb1',
                         letterSpacing: '0.15em',
                         opacity: phase >= 1 ? 1 : 0,
                         transform: phase >= 1 ? 'translateY(0) scale(1)' : 'translateY(30px) scale(0.95)',
                         transition: 'all 1.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
                         textShadow: '0 0 20px rgba(255,160,50,0.4), 0 0 40px rgba(255,100,0,0.2)',
                         textTransform: 'uppercase',
-                        marginBottom: '0',
+                        marginBottom: '5px',
                     }}
                 >
                     DEVFEST 2.0
@@ -142,11 +142,11 @@ export default function TitleReveal() {
                 <h2
                     style={{
                         fontFamily: "'Rajdhani', sans-serif",
-                        fontSize: 'clamp(3.5rem, 10vw, 8rem)',
+                        fontSize: 'clamp(2.5rem, 8vw, 8rem)',
                         fontWeight: 700,
                         color: '#fff',
                         letterSpacing: '0.1em',
-                        margin: '-10px 0 0 0',
+                        margin: '0',
                         opacity: phase >= 2 ? 1 : 0,
                         transform: phase >= 2 ? 'translateY(0)' : 'translateY(20px)',
                         transition: 'all 2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s',
