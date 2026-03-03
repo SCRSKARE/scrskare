@@ -82,20 +82,49 @@ export default function AdminReports() {
         }
     };
 
-    const exportSubmissions = async () => {
-        setLoading('submissions');
+    const exportManualAttendance = async () => {
+        setLoading('manual_attendance');
         try {
-            const snap = await getDocs(collection(db, 'submissions'));
-            const flat = [];
-            for (const d of snap.docs) {
-                const s = d.data();
-                let teamName = '';
-                try { if (s.team_id) { const t = await getDoc(doc(db, 'teams', s.team_id)); teamName = t.exists() ? t.data().name : ''; } } catch { }
-                flat.push({ team: teamName, repo_link: s.repo_link, status: s.status, submitted_at: s.submitted_at, notes: s.notes });
-            }
-            downloadExcel(flat, 'submissions.xlsx');
+            const q = query(collection(db, 'teams'), orderBy('name'));
+            const snap = await getDocs(q);
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const rows = [];
+            data.forEach(t => {
+                let members = [];
+                if (Array.isArray(t.members)) {
+                    members = t.members;
+                } else if (typeof t.members === 'string') {
+                    try { members = JSON.parse(t.members); } catch { members = []; }
+                }
+                if (members.length > 0) {
+                    members.forEach(m => {
+                        rows.push({
+                            'Team': t.name || '',
+                            'Member Name': m.name || '',
+                            'Reg No': m.reg_no || '',
+                            'Round 1': '',
+                            'Round 2': '',
+                            'Round 3': '',
+                        });
+                    });
+                } else {
+                    rows.push({
+                        'Team': t.name || '',
+                        'Member Name': '',
+                        'Reg No': '',
+                        'Round 1': '',
+                        'Round 2': '',
+                        'Round 3': '',
+                    });
+                }
+            });
+            const ws = XLSX.utils.json_to_sheet(rows);
+            ws['!cols'] = [{ wch: 22 }, { wch: 30 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Manual Attendance');
+            XLSX.writeFile(wb, 'manual_attendance.xlsx');
         } catch (error) {
-            alert('Failed to export submissions: ' + error.message);
+            alert('Failed to export manual attendance: ' + error.message);
         } finally {
             setLoading('');
         }
@@ -156,12 +185,12 @@ export default function AdminReports() {
                     </div>
                 </button>
 
-                <button onClick={exportSubmissions} disabled={!!loading} style={btnStyle('255,180,0')}>
-                    <span style={{ fontSize: '1.3rem' }}>📦</span>
+                <button onClick={exportManualAttendance} disabled={!!loading} style={btnStyle('255,180,0')}>
+                    <span style={{ fontSize: '1.3rem' }}>✍️</span>
                     <div>
-                        <div style={{ color: '#fbbf24', marginBottom: '3px' }}>Submissions Status</div>
+                        <div style={{ color: '#fbbf24', marginBottom: '3px' }}>Manual Attendance XL</div>
                         <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
-                            {loading === 'submissions' ? 'Exporting...' : 'All submissions with validation status'}
+                            {loading === 'manual_attendance' ? 'Exporting...' : 'Printable attendance sheet with blank sign columns'}
                         </div>
                     </div>
                 </button>
