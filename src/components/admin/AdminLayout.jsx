@@ -69,7 +69,7 @@ export default function AdminLayout() {
                 </div>
 
                 {/* Nav */}
-                <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
+                <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
@@ -108,12 +108,14 @@ export default function AdminLayout() {
             {/* Main Content */}
             <main className="admin-main" style={{
                 flex: 1, overflow: 'auto', padding: '25px',
+                WebkitOverflowScrolling: 'touch',
                 background: 'radial-gradient(ellipse at top, rgba(30,15,0,0.2) 0%, rgba(2,5,10,0.6) 70%)',
             }}>
                 <Outlet />
             </main>
 
             <style>{`
+                /* Mobile admin responsive */
                 @media (max-width: 768px) {
                     .admin-mobile-bar { display: flex !important; }
                     .admin-sidebar-overlay { display: block !important; }
@@ -121,8 +123,45 @@ export default function AdminLayout() {
                         position: fixed !important; top: 50px !important; left: 0 !important;
                         bottom: 0 !important; z-index: 250 !important; height: auto !important;
                         transform: ${sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'} !important;
+                        overflow-y: auto !important;
+                        -webkit-overflow-scrolling: touch !important;
                     }
-                    .admin-main { padding: 15px !important; margin-top: 50px !important; }
+                    .admin-main {
+                        padding: 12px !important;
+                        margin-top: 50px !important;
+                        height: calc(100vh - 50px) !important;
+                        overflow-y: auto !important;
+                        -webkit-overflow-scrolling: touch !important;
+                        touch-action: pan-y !important;
+                    }
+                }
+
+                /* Smooth scrollable tables on mobile */
+                @media (max-width: 768px) {
+                    .admin-main table {
+                        display: block;
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                        white-space: nowrap;
+                    }
+                    .admin-main th,
+                    .admin-main td {
+                        padding: 8px 10px !important;
+                        font-size: 0.7rem !important;
+                    }
+                    .admin-main h2 {
+                        font-size: 0.9rem !important;
+                    }
+                    .admin-main button {
+                        min-height: 40px;
+                        touch-action: manipulation;
+                    }
+                    .admin-main input,
+                    .admin-main select,
+                    .admin-main textarea {
+                        font-size: 16px !important;
+                        min-height: 40px;
+                    }
                 }
             `}</style>
         </div>

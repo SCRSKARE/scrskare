@@ -267,6 +267,7 @@ html {
   table {
     display: block;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     white-space: nowrap;
   }
 
@@ -279,6 +280,34 @@ html {
   /* Stack flex containers */
   .flex-responsive {
     flex-direction: column !important;
+  }
+
+  /* Prevent 300ms tap delay everywhere */
+  * {
+    touch-action: manipulation;
+  }
+
+  /* Ensure scrollable containers work on touch */
+  [style*="overflow: auto"],
+  [style*="overflow-y: auto"],
+  [style*="overflowY"] {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Bigger tap targets on mobile */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    min-height: 36px;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }
 
