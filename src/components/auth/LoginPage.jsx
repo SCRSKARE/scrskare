@@ -64,7 +64,7 @@ export default function LoginPage() {
 
     return (
         <div style={{
-            position: 'fixed', inset: 0, width: '100vw', height: '100vh',
+            position: 'fixed', inset: 0, width: '100%', height: '100vh',
             background: '#02050a', overflow: 'hidden',
         }}>
             <video

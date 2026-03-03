@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children }) {
         return (
             <div style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                height: '100vh', width: '100vw', background: '#02050a',
+                height: '100vh', width: '100%', background: '#02050a',
                 position: 'fixed', inset: 0, zIndex: 9999,
             }}>
                 {/* Spinning ring */}

@@ -31,7 +31,7 @@ export default function AdminLayout() {
     };
 
     return (
-        <div style={{ display: 'flex', width: '100vw', height: '100vh', background: '#02050a', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', width: '100%', height: '100vh', background: '#02050a', overflow: 'hidden' }}>
             {/* Mobile top bar */}
             <div className="admin-mobile-bar" style={{
                 display: 'none', position: 'fixed', top: 0, left: 0, right: 0, height: '50px',

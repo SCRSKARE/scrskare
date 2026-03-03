@@ -25,7 +25,7 @@ export default function ForgotPassword() {
 
     return (
         <div style={{
-            position: 'fixed', inset: 0, width: '100vw', height: '100vh',
+            position: 'fixed', inset: 0, width: '100%', height: '100vh',
             background: '#02050a', overflow: 'hidden',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>

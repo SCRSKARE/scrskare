@@ -51,7 +51,7 @@ export default function IntroSequence() {
 
     return (
         <div style={{
-            width: '100vw', height: '100vh', position: 'fixed', inset: 0,
+            width: '100%', height: '100%', position: 'fixed', inset: 0,
             background: '#000', overflow: 'hidden',
         }}>
             <div style={{ width: '100%', height: '100%', ...getSceneStyle() }}>

@@ -34,7 +34,7 @@ export default function ParticipantLayout() {
     ];
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', background: '#02050a', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', background: '#02050a', overflow: 'hidden' }}>
             <header style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '0 15px', height: '56px', flexShrink: 0,

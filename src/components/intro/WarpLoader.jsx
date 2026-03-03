@@ -113,7 +113,7 @@ export default function WarpLoader() {
             style={{
                 position: 'fixed',
                 inset: 0,
-                width: '100vw',
+                width: '100%',
                 height: '100vh',
                 background: '#050300',
                 overflow: 'hidden',

@@ -17,6 +17,12 @@ body,
   overflow: hidden;
   background: #000;
   font-family: 'Rajdhani', sans-serif;
+  -webkit-overflow-scrolling: touch;
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 
