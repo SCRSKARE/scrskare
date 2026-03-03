@@ -17,9 +17,13 @@ export default function AdminReports() {
     const exportTeams = async () => {
         setLoading('teams');
         try {
-            const q = query(collection(db, 'teams'), orderBy('team_code'));
-            const snap = await getDocs(q);
+            const snap = await getDocs(collection(db, 'teams'));
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            data.sort((a, b) => {
+                const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+                const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+                return numA - numB;
+            });
             if (data.length) {
                 const rows = [];
                 data.forEach(t => {
@@ -85,9 +89,13 @@ export default function AdminReports() {
     const exportManualAttendance = async () => {
         setLoading('manual_attendance');
         try {
-            const q = query(collection(db, 'teams'), orderBy('team_code'));
-            const snap = await getDocs(q);
+            const snap = await getDocs(collection(db, 'teams'));
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            data.sort((a, b) => {
+                const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+                const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+                return numA - numB;
+            });
             const rows = [];
             data.forEach(t => {
                 let members = [];

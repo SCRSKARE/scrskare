@@ -11,8 +11,7 @@ export default function AdminCredentials() {
 
     useEffect(() => {
         const loadTeams = async () => {
-            const q = query(collection(db, 'teams'), orderBy('team_code'));
-            const snap = await getDocs(q);
+            const snap = await getDocs(collection(db, 'teams'));
             const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             items.sort((a, b) => {
                 const numA = parseInt((a.team_code || '').split('-').pop()) || 0;

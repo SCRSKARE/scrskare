@@ -24,9 +24,14 @@ export default function AdminAttendance() {
     useEffect(() => { loadTeams(); }, []);
 
     const loadTeams = async () => {
-        const q = query(collection(db, 'teams'), orderBy('team_code'));
-        const snap = await getDocs(q);
-        setTeams(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const snap = await getDocs(collection(db, 'teams'));
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        items.sort((a, b) => {
+            const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+            const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+            return numA - numB;
+        });
+        setTeams(items);
         setLoading(false);
     };
 
