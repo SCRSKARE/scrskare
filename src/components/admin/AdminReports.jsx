@@ -21,25 +21,37 @@ export default function AdminReports() {
             const snap = await getDocs(q);
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             if (data.length) {
-                const formattedData = data.map(t => {
-                    let membersStr = '';
+                const rows = [];
+                data.forEach(t => {
+                    let members = [];
                     if (Array.isArray(t.members)) {
-                        membersStr = t.members.map(m => `${m.name || ''} (${m.reg_no || ''})`).join(', ');
+                        members = t.members;
                     } else if (typeof t.members === 'string') {
-                        try {
-                            const parsed = JSON.parse(t.members);
-                            if (Array.isArray(parsed)) {
-                                membersStr = parsed.map(m => `${m.name || ''} (${m.reg_no || ''})`).join(', ');
-                            } else {
-                                membersStr = t.members;
-                            }
-                        } catch {
-                            membersStr = t.members;
-                        }
+                        try { members = JSON.parse(t.members); } catch { members = []; }
                     }
-                    return { ...t, members: membersStr };
+                    if (members.length > 0) {
+                        members.forEach(m => {
+                            rows.push({
+                                'Team': t.name || '',
+                                'Team Code': t.team_code || '',
+                                'Member Name': m.name || '',
+                                'Reg No': m.reg_no || '',
+                            });
+                        });
+                    } else {
+                        rows.push({
+                            'Team': t.name || '',
+                            'Team Code': t.team_code || '',
+                            'Member Name': '',
+                            'Reg No': '',
+                        });
+                    }
                 });
-                downloadExcel(formattedData, 'teams_list.xlsx');
+                const ws = XLSX.utils.json_to_sheet(rows);
+                ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 35 }, { wch: 18 }];
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Teams');
+                XLSX.writeFile(wb, 'teams_list.xlsx');
             }
         } catch (error) {
             alert('Failed to export teams: ' + error.message);
