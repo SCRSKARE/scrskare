@@ -20,7 +20,27 @@ export default function AdminReports() {
             const q = query(collection(db, 'teams'), orderBy('name'));
             const snap = await getDocs(q);
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (data.length) downloadExcel(data.map(t => ({ ...t, members: JSON.stringify(t.members) })), 'teams_list.xlsx');
+            if (data.length) {
+                const formattedData = data.map(t => {
+                    let membersStr = '';
+                    if (Array.isArray(t.members)) {
+                        membersStr = t.members.map(m => `${m.name || ''} (${m.reg_no || ''})`).join(', ');
+                    } else if (typeof t.members === 'string') {
+                        try {
+                            const parsed = JSON.parse(t.members);
+                            if (Array.isArray(parsed)) {
+                                membersStr = parsed.map(m => `${m.name || ''} (${m.reg_no || ''})`).join(', ');
+                            } else {
+                                membersStr = t.members;
+                            }
+                        } catch {
+                            membersStr = t.members;
+                        }
+                    }
+                    return { ...t, members: membersStr };
+                });
+                downloadExcel(formattedData, 'teams_list.xlsx');
+            }
         } catch (error) {
             alert('Failed to export teams: ' + error.message);
         } finally {
