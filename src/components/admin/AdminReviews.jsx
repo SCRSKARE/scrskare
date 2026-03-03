@@ -99,7 +99,7 @@ export default function AdminReviews() {
 
     const loadData = async () => {
         try {
-            const teamsSnap = await getDocs(query(collection(db, 'teams'), where('is_active', '==', true)));
+            const teamsSnap = await getDocs(collection(db, 'teams'));
             const teamsData = [];
             for (const d of teamsSnap.docs) {
                 const t = { id: d.id, ...d.data() };
@@ -108,6 +108,11 @@ export default function AdminReviews() {
                 t.submissions = subSnap.docs.map(s => ({ id: s.id, ...s.data() }));
                 teamsData.push(t);
             }
+            teamsData.sort((a, b) => {
+                const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+                const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+                return numA - numB;
+            });
             setSubmissions(teamsData);
         } catch { }
 
