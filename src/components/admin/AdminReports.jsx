@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { db } from '../../lib/firebaseClient';
 import { collection, getDocs, query, orderBy, getDoc, doc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminReports() {
     const [loading, setLoading] = useState('');
+    const { profile } = useAuth();
+    const role = profile?.role || 'admin';
 
     const downloadExcel = (data, filename) => {
         if (!data.length) return alert('No data to export');
@@ -183,35 +186,37 @@ export default function AdminReports() {
                     </div>
                 </button>
 
-                <button onClick={exportSelections} disabled={!!loading} style={btnStyle('0,255,100')}>
-                    <span style={{ fontSize: '1.3rem' }}>🎯</span>
-                    <div>
-                        <div style={{ color: '#4ade80', marginBottom: '3px' }}>Problem Selections</div>
-                        <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
-                            {loading === 'selections' ? 'Exporting...' : 'Team → problem mapping with timestamps'}
+                {role === 'admin' && <>
+                    <button onClick={exportSelections} disabled={!!loading} style={btnStyle('0,255,100')}>
+                        <span style={{ fontSize: '1.3rem' }}>🎯</span>
+                        <div>
+                            <div style={{ color: '#4ade80', marginBottom: '3px' }}>Problem Selections</div>
+                            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
+                                {loading === 'selections' ? 'Exporting...' : 'Team → problem mapping with timestamps'}
+                            </div>
                         </div>
-                    </div>
-                </button>
+                    </button>
 
-                <button onClick={exportManualAttendance} disabled={!!loading} style={btnStyle('255,180,0')}>
-                    <span style={{ fontSize: '1.3rem' }}>✍️</span>
-                    <div>
-                        <div style={{ color: '#fbbf24', marginBottom: '3px' }}>Manual Attendance XL</div>
-                        <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
-                            {loading === 'manual_attendance' ? 'Exporting...' : 'Printable attendance sheet with blank sign columns'}
+                    <button onClick={exportManualAttendance} disabled={!!loading} style={btnStyle('255,180,0')}>
+                        <span style={{ fontSize: '1.3rem' }}>✍️</span>
+                        <div>
+                            <div style={{ color: '#fbbf24', marginBottom: '3px' }}>Manual Attendance XL</div>
+                            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
+                                {loading === 'manual_attendance' ? 'Exporting...' : 'Printable attendance sheet with blank sign columns'}
+                            </div>
                         </div>
-                    </div>
-                </button>
+                    </button>
 
-                <button onClick={exportScores} disabled={!!loading} style={btnStyle('255,140,0')}>
-                    <span style={{ fontSize: '1.3rem' }}>⭐</span>
-                    <div>
-                        <div style={{ color: '#ff8c00', marginBottom: '3px' }}>Scores Summary</div>
-                        <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
-                            {loading === 'scores' ? 'Exporting...' : 'Judge scores, totals, and comments'}
+                    <button onClick={exportScores} disabled={!!loading} style={btnStyle('255,140,0')}>
+                        <span style={{ fontSize: '1.3rem' }}>⭐</span>
+                        <div>
+                            <div style={{ color: '#ff8c00', marginBottom: '3px' }}>Scores Summary</div>
+                            <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)' }}>
+                                {loading === 'scores' ? 'Exporting...' : 'Judge scores, totals, and comments'}
+                            </div>
                         </div>
-                    </div>
-                </button>
+                    </button>
+                </>}
             </div>
         </div>
     );
