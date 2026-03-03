@@ -6,7 +6,7 @@ import {
     onAuthStateChanged,
     sendPasswordResetEmail,
 } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, runTransaction } from 'firebase/firestore';
 
 const AuthContext = createContext(null);
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
@@ -178,19 +178,22 @@ export function AuthProvider({ children }) {
             localStorage.setItem('scrs_device_id', deviceId);
         }
 
-        let activeDevices = Array.isArray(team.active_devices) ? [...team.active_devices] : [];
-        if (!activeDevices.includes(deviceId)) {
-            if (activeDevices.length >= 2) {
-                throw new Error('Maximum devices (2) reached. Please log out from another device.');
+        const teamRef = doc(db, 'teams', team.id);
+
+        await runTransaction(db, async (transaction) => {
+            const tDoc = await transaction.get(teamRef);
+            if (!tDoc.exists()) throw new Error('Team does not exist');
+            const tData = tDoc.data();
+            let activeDevices = Array.isArray(tData.active_devices) ? [...tData.active_devices] : [];
+
+            if (!activeDevices.includes(deviceId)) {
+                if (activeDevices.length >= 2) {
+                    throw new Error('Maximum devices (2) reached. Please log out from another device.');
+                }
+                activeDevices.push(deviceId);
+                transaction.update(teamRef, { active_devices: activeDevices });
             }
-            activeDevices.push(deviceId);
-            try {
-                const teamRef = doc(db, 'teams', team.id);
-                await updateDoc(teamRef, { active_devices: activeDevices });
-            } catch (err) {
-                throw new Error('Failed to register device session: ' + err.message);
-            }
-        }
+        });
 
         const session = {
             team_id: team.id,
