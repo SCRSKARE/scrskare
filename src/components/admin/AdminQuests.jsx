@@ -22,8 +22,12 @@ export default function AdminQuests() {
                 }
             });
 
-            // sort by total desc
-            items.sort((a, b) => (b.quests_scores?.total || 0) - (a.quests_scores?.total || 0));
+            // sort by team_code numeric suffix
+            items.sort((a, b) => {
+                const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+                const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+                return numA - numB;
+            });
             setTeams(items);
         } catch (e) {
             console.error('Error loading teams:', e);
@@ -52,7 +56,11 @@ export default function AdminQuests() {
             // re-sort slightly locally
             setTeams(prev => {
                 const updated = [...prev];
-                updated.sort((a, b) => (b.quests_scores?.total || 0) - (a.quests_scores?.total || 0));
+                updated.sort((a, b) => {
+                    const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+                    const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+                    return numA - numB;
+                });
                 return updated;
             });
         } catch (e) {

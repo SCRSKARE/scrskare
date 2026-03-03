@@ -12,7 +12,11 @@ export default function AdminTeams() {
     const loadTeams = async () => {
         const snap = await getDocs(collection(db, 'teams'));
         const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        items.sort((a, b) => new Date(b.created_at?.seconds * 1000 || 0) - new Date(a.created_at?.seconds * 1000 || 0));
+        items.sort((a, b) => {
+            const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+            const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+            return numA - numB;
+        });
         setTeams(items);
     };
 

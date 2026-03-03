@@ -17,7 +17,7 @@ export default function AdminReports() {
     const exportTeams = async () => {
         setLoading('teams');
         try {
-            const q = query(collection(db, 'teams'), orderBy('name'));
+            const q = query(collection(db, 'teams'), orderBy('team_code'));
             const snap = await getDocs(q);
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             if (data.length) {
@@ -85,7 +85,7 @@ export default function AdminReports() {
     const exportManualAttendance = async () => {
         setLoading('manual_attendance');
         try {
-            const q = query(collection(db, 'teams'), orderBy('name'));
+            const q = query(collection(db, 'teams'), orderBy('team_code'));
             const snap = await getDocs(q);
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             const rows = [];

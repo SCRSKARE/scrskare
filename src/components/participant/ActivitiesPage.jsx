@@ -14,9 +14,12 @@ export default function ActivitiesPage() {
             const snap = await getDocs(collection(db, 'teams'));
             const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            // Only keep teams that actually have somewhat active quests scores or 
-            // sort them by desc total
-            items.sort((a, b) => (b.quests_scores?.total || 0) - (a.quests_scores?.total || 0));
+            // Sort by team_code numeric suffix (e.g. XXXXX-001 before XXXXX-002)
+            items.sort((a, b) => {
+                const numA = parseInt((a.team_code || '').split('-').pop()) || 0;
+                const numB = parseInt((b.team_code || '').split('-').pop()) || 0;
+                return numA - numB;
+            });
 
             setTeams(items);
         } catch (e) {

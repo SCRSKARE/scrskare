@@ -24,7 +24,7 @@ export default function AdminAttendance() {
     useEffect(() => { loadTeams(); }, []);
 
     const loadTeams = async () => {
-        const q = query(collection(db, 'teams'), orderBy('name'));
+        const q = query(collection(db, 'teams'), orderBy('team_code'));
         const snap = await getDocs(q);
         setTeams(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         setLoading(false);
