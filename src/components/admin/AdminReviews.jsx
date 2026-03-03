@@ -103,9 +103,13 @@ export default function AdminReviews() {
             const teamsData = [];
             for (const d of teamsSnap.docs) {
                 const t = { id: d.id, ...d.data() };
-                const subQ = query(collection(db, 'submissions'), where('team_id', '==', d.id));
-                const subSnap = await getDocs(subQ);
-                t.submissions = subSnap.docs.map(s => ({ id: s.id, ...s.data() }));
+                try {
+                    const subQ = query(collection(db, 'submissions'), where('team_id', '==', d.id));
+                    const subSnap = await getDocs(subQ);
+                    t.submissions = subSnap.docs.map(s => ({ id: s.id, ...s.data() }));
+                } catch {
+                    t.submissions = [];
+                }
                 teamsData.push(t);
             }
             teamsData.sort((a, b) => {
@@ -114,7 +118,7 @@ export default function AdminReviews() {
                 return numA - numB;
             });
             setSubmissions(teamsData);
-        } catch { }
+        } catch (err) { console.error('Failed to load teams:', err); }
 
         try {
             const rQ = query(collection(db, 'reviews'), where('round', '==', round), orderBy('reviewed_at', 'desc'));
