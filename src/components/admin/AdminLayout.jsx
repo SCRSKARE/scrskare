@@ -10,6 +10,7 @@ const allNavItems = [
     { path: '/admin/credentials', label: 'CREDENTIALS', icon: '🔑', roles: ['admin'] },
     { path: '/admin/selections', label: 'SELECTIONS', icon: '◉', roles: ['admin'] },
     { path: '/admin/reviews', label: 'REVIEWS', icon: '★', roles: ['admin'] },
+    { path: '/admin/scores', label: 'SCORES', icon: '📊', roles: ['admin'] },
     { path: '/admin/attendance', label: 'ATTENDANCE', icon: '📋', roles: ['admin', 'coordinator'] },
     { path: '/admin/evaluation', label: 'EVALUATION', icon: '⚖️', roles: ['admin'] },
     { path: '/admin/timeline', label: 'TIMELINE', icon: '⏳', roles: ['admin'] },
@@ -17,6 +18,7 @@ const allNavItems = [
     { path: '/admin/announcements', label: 'ANNOUNCE', icon: '📢', roles: ['admin'] },
     { path: '/admin/audio', label: 'AUDIO', icon: '🎵', roles: ['admin'] },
     { path: '/admin/reports', label: 'REPORTS', icon: '▤', roles: ['admin', 'coordinator'] },
+    { path: '/admin/badges', label: 'BADGES', icon: '🎴', roles: ['admin'] },
 ];
 
 export default function AdminLayout() {

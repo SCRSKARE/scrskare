@@ -5,6 +5,7 @@ const STORAGE_KEY = 'devfest_eval_criteria';
 const DEFAULT_CRITERIA = {
     1: [],
     2: [],
+    3: [],
 };
 
 export function getEvalCriteria(round) {
@@ -76,7 +77,7 @@ export default function AdminEvaluation() {
             <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '1.2rem', color: S.gold, letterSpacing: '0.1em', marginBottom: '25px' }}>⚖️ EVALUATION CRITERIA</h2>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-                {[1, 2].map(r => (
+                {[1, 2, 3].map(r => (
                     <button key={r} onClick={() => setRound(r)} style={{
                         padding: '10px 25px', borderRadius: '6px', cursor: 'pointer',
                         background: round === r ? 'rgba(255,140,0,0.2)' : 'transparent',

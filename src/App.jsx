@@ -30,6 +30,8 @@ import AdminEvaluation from './components/admin/AdminEvaluation';
 import AdminTeamUpload from './components/admin/AdminTeamUpload';
 import AdminCredentials from './components/admin/AdminCredentials';
 import AdminAudio from './components/admin/AdminAudio';
+import AdminScores from './components/admin/AdminScores';
+import AdminBadges from './components/admin/AdminBadges';
 
 import './index.css';
 
@@ -78,12 +80,14 @@ export default function App() {
             <Route path="/admin/selections" element={<AdminSelections />} />
             <Route path="/admin/submissions" element={<AdminSubmissions />} />
             <Route path="/admin/reviews" element={<AdminReviews />} />
+            <Route path="/admin/scores" element={<AdminScores />} />
             <Route path="/admin/attendance" element={<AdminAttendance />} />
             <Route path="/admin/evaluation" element={<AdminEvaluation />} />
             <Route path="/admin/timeline" element={<AdminTimeline />} />
             <Route path="/admin/quests" element={<AdminQuests />} />
             <Route path="/admin/announcements" element={<AdminAnnouncements />} />
             <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/admin/badges" element={<AdminBadges />} />
             <Route path="/admin/audio" element={<AdminAudio />} />
           </Route>
 
