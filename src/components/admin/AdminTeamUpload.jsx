@@ -29,8 +29,10 @@ function parseExcelWithHeaders(rows) {
             colMap.teamName = i;
         }
         if (/email/i.test(h)) colMap.email = i;
+        if (/^(dept|department|branch)$/i.test(h.replace(/\s/g, ''))) colMap.dept = i;
+        if (/^year$/i.test(h.replace(/\s/g, ''))) colMap.year = i;
 
-        if (!h.includes('reg')) {
+        if (!h.includes('reg') && !h.includes('dept') && !h.includes('department') && !h.includes('branch') && !h.includes('year')) {
             const memberMatch = h.match(/member\s*[-–]?\s*(\d)/i);
             if (memberMatch) {
                 const num = memberMatch[1];
@@ -46,6 +48,19 @@ function parseExcelWithHeaders(rows) {
                 if (!colMap.members[num]) colMap.members[num] = {};
                 colMap.members[num].regNo = i;
             }
+        }
+
+        const deptMatch = h.match(/member\s*[-–]?\s*(\d)\s*[-–]?\s*(dept|department|branch)/i);
+        if (deptMatch) {
+            const num = deptMatch[1];
+            if (!colMap.members[num]) colMap.members[num] = {};
+            colMap.members[num].dept = i;
+        }
+        const yearMatch = h.match(/member\s*[-–]?\s*(\d)\s*[-–]?\s*year/i);
+        if (yearMatch) {
+            const num = yearMatch[1];
+            if (!colMap.members[num]) colMap.members[num] = {};
+            colMap.members[num].year = i;
         }
     });
 
@@ -64,12 +79,16 @@ function parseExcelWithHeaders(rows) {
         if (!teamName) continue;
 
         const teamEmail = colMap.email !== undefined ? cells[colMap.email] : '';
+        const globalDept = colMap.dept !== undefined ? cells[colMap.dept] || '' : '';
+        const globalYear = colMap.year !== undefined ? cells[colMap.year] || '' : '';
         const members = [];
 
         Object.keys(colMap.members).sort().forEach(num => {
             const m = colMap.members[num];
             const name = m.name !== undefined ? cells[m.name] || '' : '';
             let regNo = m.regNo !== undefined ? cells[m.regNo] || '' : '';
+            const memberDept = m.dept !== undefined ? cells[m.dept] || '' : '';
+            const memberYear = m.year !== undefined ? cells[m.year] || '' : '';
 
             if (regNo && /E\+/i.test(regNo)) {
                 try { regNo = BigInt(Math.round(parseFloat(regNo))).toString(); } catch { regNo = String(Math.round(parseFloat(regNo))); }
@@ -79,6 +98,8 @@ function parseExcelWithHeaders(rows) {
                 members.push({
                     name,
                     reg_no: regNo,
+                    dept: memberDept || globalDept,
+                    year: memberYear || globalYear,
                     role: members.length === 0 ? 'Leader' : 'Member',
                 });
             }
@@ -126,17 +147,26 @@ function parseHorizontalNoHeader(rows) {
             if (!val) continue;
 
             const isRegNo = /^\d{8,}$/.test(val) || /E\+/i.test(val);
-            const isSkip = /year/i.test(val) ||
-                /^(CSE|IT|ECE|EEE|MECH|CIVIL|AIDS|AIML|CSD|CSM|EIE|BME)$/i.test(val) ||
+            const isDept = /^(CSE|IT|ECE|EEE|MECH|CIVIL|AIDS|AIML|CSD|CSM|EIE|BME)$/i.test(val);
+            const isYear = /^\d{1}(st|nd|rd|th)?\s*year$/i.test(val) || /^[1-4]$/.test(val);
+            const isSkip =
                 /^\d{10}$/.test(val) ||
                 /^https?:\/\//i.test(val) || /\.(com|in|org|io)\b/i.test(val) ||
                 /^(yes|no|na|n\/a|true|false|none|nil|T)$/i.test(val) ||
-                /^\d+$/.test(val) || /^[A-Z0-9]{12,}$/.test(val);
+                /^[A-Z0-9]{12,}$/.test(val);
 
             if (isRegNo) {
                 let regStr = val;
                 if (/E\+/i.test(val)) { try { regStr = BigInt(Math.round(parseFloat(val))).toString(); } catch { regStr = String(Math.round(parseFloat(val))); } }
                 if (currentMember) currentMember.reg_no = regStr;
+                continue;
+            }
+            if (isDept) {
+                if (currentMember) currentMember.dept = val.toUpperCase();
+                continue;
+            }
+            if (isYear) {
+                if (currentMember) currentMember.year = val.replace(/[^0-9]/g, '');
                 continue;
             }
             if (isSkip) continue;
@@ -145,7 +175,7 @@ function parseHorizontalNoHeader(rows) {
             if (alphaOnly.length < 4 && val.split(/\s+/).length < 2) continue;
 
             if (currentMember && currentMember.name) members.push(currentMember);
-            currentMember = { name: val, reg_no: '', role: members.length === 0 ? 'Leader' : 'Member' };
+            currentMember = { name: val, reg_no: '', dept: '', year: '', role: members.length === 0 ? 'Leader' : 'Member' };
         }
         if (currentMember && currentMember.name) members.push(currentMember);
 
@@ -193,7 +223,6 @@ export default function AdminTeamUpload() {
         setResult(null);
 
         try {
-            // Fetch all existing teams to check for duplicates by team_code
             const existingSnap = await getDocs(collection(db, 'teams'));
             const existingByCode = {};
             existingSnap.docs.forEach(d => {
@@ -203,43 +232,46 @@ export default function AdminTeamUpload() {
                 }
             });
 
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 20;
             let created = 0;
             let updated = 0;
+            const teamsToProcess = preview.slice(0, 450);
 
-            preview.forEach(team => {
-                if (created + updated >= 450) return; // safety limit
-                const code = team.team_code.toUpperCase();
-                const existingId = existingByCode[code];
+            for (let i = 0; i < teamsToProcess.length; i += BATCH_SIZE) {
+                const chunk = teamsToProcess.slice(i, i + BATCH_SIZE);
+                const batch = writeBatch(db);
 
-                if (existingId) {
-                    // Update existing team
-                    const ref = doc(db, 'teams', existingId);
-                    batch.update(ref, {
-                        name: team.name,
-                        members: team.members,
-                        is_active: true,
-                    });
-                    updated++;
-                } else {
-                    // Create new team
-                    const ref = doc(collection(db, 'teams'));
-                    batch.set(ref, {
-                        name: team.name,
-                        team_code: team.team_code,
-                        members: team.members,
-                        is_active: true,
-                        created_at: serverTimestamp(),
-                    });
-                    created++;
-                }
-            });
+                chunk.forEach(team => {
+                    const code = team.team_code.toUpperCase();
+                    const existingId = existingByCode[code];
 
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Upload timed out after 15 seconds. Check network or database rules.')), 15000)
-            );
+                    if (existingId) {
+                        const ref = doc(db, 'teams', existingId);
+                        batch.update(ref, {
+                            name: team.name,
+                            members: team.members,
+                            is_active: true,
+                        });
+                        updated++;
+                    } else {
+                        const ref = doc(collection(db, 'teams'));
+                        batch.set(ref, {
+                            name: team.name,
+                            team_code: team.team_code,
+                            members: team.members,
+                            is_active: true,
+                            created_at: serverTimestamp(),
+                        });
+                        created++;
+                    }
+                });
 
-            await Promise.race([batch.commit(), timeoutPromise]);
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error(`Batch ${Math.floor(i / BATCH_SIZE) + 1} timed out. Check network or database rules.`)), 30000)
+                );
+
+                await Promise.race([batch.commit(), timeoutPromise]);
+            }
 
             const msg = [];
             if (created > 0) msg.push(`${created} new`);
@@ -315,6 +347,8 @@ export default function AdminTeamUpload() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontSize: '0.65rem', color: j === 0 ? S.gold : S.dim, fontFamily: "'Orbitron', sans-serif" }}>{j === 0 ? '👑' : '•'}</span>
                                 <span style={{ color: S.text }}>{m.name}</span>
+                                {m.dept && <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>({m.dept})</span>}
+                                {m.year && <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>{['I', 'II', 'III', 'IV', 'V'][parseInt(String(m.year).replace(/[^0-9]/g, '')) - 1] || String(m.year).replace(/year/gi, '').trim()} year</span>}
                             </div>
                             <span style={{ color: '#0ff', fontSize: '0.85rem', fontFamily: "'Orbitron', sans-serif" }}>{m.reg_no}</span>
                         </div>

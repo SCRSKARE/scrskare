@@ -162,6 +162,11 @@ export default function AdminTeams() {
                             </div>
                             <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
                                 {Array.isArray(t.members) ? `${t.members.length} members` : '0 members'}
+                                {Array.isArray(t.members) && t.members.some(m => m.dept) && (
+                                    <span style={{ marginLeft: '8px', color: '#fbbf24', fontSize: '0.75rem' }}>
+                                        {[...new Set(t.members.map(m => m.dept).filter(Boolean))].join(', ')}
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px' }}>

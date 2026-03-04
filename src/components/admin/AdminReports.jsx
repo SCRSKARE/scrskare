@@ -43,6 +43,8 @@ export default function AdminReports() {
                                 'Team Code': t.team_code || '',
                                 'Member Name': m.name || '',
                                 'Reg No': m.reg_no || '',
+                                'Department': m.dept || '',
+                                'Year': m.year || '',
                             });
                         });
                     } else {
@@ -51,11 +53,13 @@ export default function AdminReports() {
                             'Team Code': t.team_code || '',
                             'Member Name': '',
                             'Reg No': '',
+                            'Department': '',
+                            'Year': '',
                         });
                     }
                 });
                 const ws = XLSX.utils.json_to_sheet(rows);
-                ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 35 }, { wch: 18 }];
+                ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 35 }, { wch: 18 }, { wch: 15 }, { wch: 8 }];
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Teams');
                 XLSX.writeFile(wb, 'teams_list.xlsx');
