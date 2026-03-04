@@ -54,15 +54,26 @@ export default function AdminBadges() {
             const rows = isFour ? 2 : 3;
             const teamsPerPage = cols * rows;
 
-            // Use larger margins for 4-per-page so badges don't stretch too tall
-            const mx = isFour ? 12 : 6;
-            const my = isFour ? 18 : 6;
-            const gx = isFour ? 10 : 4;
-            const gy = isFour ? 10 : 4;
-
+            // Use the absolute minimum margin and gap to maximize badge size
+            const mx = 6;
+            const gx = 4;
+            // The maximum allowable badge width based on the A4 page width (210mm)
             const cw = (pageW - mx * 2 - gx) / cols;
-            // The available height has spaces subtracted between rows
-            const ch = (pageH - my * 2 - gy * (rows - 1)) / rows;
+
+            const origW = 97;
+            const origH = 92.3333; // ~ 277/3
+            const targetRatio = origW / origH;
+
+            // Because width is the limiting factor for 2 columns on an A4 page,
+            // the size of the badges cannot be increased any further without making them overlap.
+            const bw = cw;
+            const bh = bw / targetRatio;
+
+            // Center the entire grid of badges vertically on the A4 page
+            const gy = 4;
+            const totalContentH = (rows * bh) + ((rows - 1) * gy);
+            const my = (pageH - totalContentH) / 2;
+
             const totalPages = Math.ceil(teams.length / teamsPerPage);
 
             for (let page = 0; page < totalPages; page++) {
@@ -75,26 +86,10 @@ export default function AdminBadges() {
                 pageTeams.forEach((team, idx) => {
                     const col = idx % cols;
                     const row = Math.floor(idx / cols);
-                    const x = mx + col * (cw + gx);
-                    const y = my + row * (ch + gy);
 
-                    // --- Aspect Ratio Enforcement ---
-                    // The original design was precisely tuned for a 97mm x 92.333mm grid cell
-                    const origW = 97;
-                    const origH = 92.3333; // ~ 277/3
-                    const targetRatio = origW / origH;
-
-                    let bw = cw;
-                    let bh = cw / targetRatio;
-                    // Keep badge within cell constraints but maintain orig ratio proportions
-                    if (bh > ch) {
-                        bh = ch;
-                        bw = bh * targetRatio;
-                    }
-
-                    // Center the badge inside the grid cell
-                    const bx = x + (cw - bw) / 2;
-                    const by = y + (ch - bh) / 2;
+                    // Directly place the badges using the maximized width/height and centering margins
+                    const bx = mx + col * (bw + gx);
+                    const by = my + row * (bh + gy);
 
                     // Scale factor for all internal elements to perfectly match original design sizes & offsets
                     const scale = bw / origW;
