@@ -274,9 +274,7 @@ export default function AdminBadges() {
                                             <div><span style={{ fontSize: '9px', color: 'rgba(255,180,80,0.9)', letterSpacing: '1px' }}>SECTOR : </span><span style={{ fontSize: '12px', fontWeight: 800, color: '#ffd700', letterSpacing: '1.5px', textShadow: '0 0 10px rgba(0,0,0,1)' }}>SHAMBALA</span></div>
                                         </div>
                                     </div>
-                                    <div style={{ position: 'absolute', bottom: '12%', left: '-2%', right: 0, textAlign: 'center' }}>
-                                        <span style={{ fontSize: '7px', color: 'rgba(200,180,130,0.9)', letterSpacing: '2px', fontWeight: 700, textShadow: '0 0 8px rgba(0,0,0,1)' }}>SOFT COMPUTING RESEARCH SOCIETY</span>
-                                    </div>
+                                    {/* Footer (Club name removed as requested) */}
                                 </div>
                             </div>
                         ))}
