@@ -8,9 +8,10 @@ export default function AdminProblems() {
     const [editing, setEditing] = useState(null);
     const [selConfig, setSelConfig] = useState({ is_open: false });
     const [form, setForm] = useState({
-        title: '', description: '', team_limit: 3,
-        requirements: '', deliverables: '', evaluation_focus: '', resources: '', is_visible: false,
+        title: '', team_limit: 3, is_visible: false,
     });
+    const [file, setFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => { loadData(); }, []);
 
@@ -30,25 +31,66 @@ export default function AdminProblems() {
 
     const getSelectionCount = (problemId) => selections.filter(s => s.problem_id === problemId).length;
 
+    const fileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
     const handleSave = async () => {
         if (!form.title) return;
-        const saveData = {
-            title: form.title, description: form.description,
-            category: String(form.team_limit || 3),
-            difficulty: 'medium',
-            requirements: form.requirements, deliverables: form.deliverables,
-            evaluation_focus: form.evaluation_focus, resources: form.resources,
-            is_visible: form.is_visible,
-        };
-        if (editing) {
-            await updateDoc(doc(db, 'problems', editing), saveData);
-        } else {
-            saveData.created_at = serverTimestamp();
-            await addDoc(collection(db, 'problems'), saveData);
+        if (!editing && !file) {
+            alert('Please upload a document file.');
+            return;
         }
-        setForm({ title: '', description: '', team_limit: 3, requirements: '', deliverables: '', evaluation_focus: '', resources: '', is_visible: false });
+        setUploading(true);
+        try {
+            let documentData = form.document_data || '';
+            let documentName = form.document_name || '';
+            let documentType = form.document_type || '';
+
+            if (file) {
+                if (file.size > 900000) {
+                    alert('File too large! Maximum file size is ~900KB. Please compress or use a smaller file.');
+                    setUploading(false);
+                    return;
+                }
+                documentData = await fileToBase64(file);
+                documentName = file.name;
+                documentType = file.type;
+            }
+
+            const saveData = {
+                title: form.title,
+                category: String(form.team_limit || 3),
+                difficulty: 'medium',
+                is_visible: form.is_visible,
+                document_data: documentData,
+                document_name: documentName,
+                document_type: documentType,
+            };
+
+            if (editing) {
+                await updateDoc(doc(db, 'problems', editing), saveData);
+            } else {
+                saveData.created_at = serverTimestamp();
+                await addDoc(collection(db, 'problems'), saveData);
+            }
+            resetForm();
+            loadData();
+        } catch (e) {
+            alert('Error saving problem: ' + e.message);
+        }
+        setUploading(false);
+    };
+
+    const resetForm = () => {
+        setForm({ title: '', team_limit: 3, is_visible: false });
+        setFile(null);
         setEditing(null);
-        loadData();
     };
 
     const handleDelete = async (id) => {
@@ -61,12 +103,14 @@ export default function AdminProblems() {
     const handleEdit = (p) => {
         setEditing(p.id);
         setForm({
-            title: p.title, description: p.description || '',
+            title: p.title,
             team_limit: parseInt(p.category) || 3,
-            requirements: p.requirements || '', deliverables: p.deliverables || '',
-            evaluation_focus: p.evaluation_focus || '', resources: p.resources || '',
             is_visible: p.is_visible,
+            document_data: p.document_data || '',
+            document_name: p.document_name || '',
+            document_type: p.document_type || '',
         });
+        setFile(null);
     };
 
     const toggleVisibility = async (id, current) => {
@@ -130,12 +174,39 @@ export default function AdminProblems() {
                         <input type="number" min="1" style={inputStyle} value={form.team_limit} onChange={(e) => setForm({ ...form, team_limit: parseInt(e.target.value) || 1 })} />
                     </div>
                 </div>
-                {['description', 'requirements', 'deliverables', 'evaluation_focus', 'resources'].map((field) => (
-                    <div key={field} style={{ marginBottom: '12px' }}>
-                        <label style={labelStyle}>{field.replace('_', ' ').toUpperCase()}</label>
-                        <textarea style={{ ...inputStyle, minHeight: '60px', resize: 'vertical' }} value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })} />
+
+                {/* Document Upload */}
+                <div style={{ marginBottom: '15px' }}>
+                    <label style={labelStyle}>PROBLEM DOCUMENT (max ~900KB)</label>
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '12px',
+                        padding: '12px 14px', background: 'rgba(0,0,0,0.4)',
+                        border: '1px solid rgba(255,140,0,0.2)', borderRadius: '6px',
+                    }}>
+                        <label style={{
+                            padding: '6px 16px', borderRadius: '4px', cursor: 'pointer',
+                            background: 'rgba(255,140,0,0.12)', border: '1px solid rgba(255,140,0,0.3)',
+                            color: '#ff8c00', fontFamily: "'Orbitron', sans-serif", fontSize: '0.55rem',
+                            letterSpacing: '0.08em', whiteSpace: 'nowrap',
+                        }}>
+                            {file ? 'CHANGE FILE' : 'CHOOSE FILE'}
+                            <input
+                                type="file"
+                                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.rar"
+                                style={{ display: 'none' }}
+                                onChange={(e) => setFile(e.target.files[0] || null)}
+                            />
+                        </label>
+                        <span style={{
+                            fontFamily: "'Rajdhani', sans-serif", fontSize: '0.9rem',
+                            color: file ? '#fff' : 'rgba(255,255,255,0.3)',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+                        }}>
+                            {file ? `${file.name} (${(file.size / 1024).toFixed(0)}KB)` : (editing && form.document_name ? `📄 ${form.document_name} (current)` : 'No file selected')}
+                        </span>
                     </div>
-                ))}
+                </div>
+
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <label style={{ ...labelStyle, marginBottom: 0, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                         <input type="checkbox" checked={form.is_visible} onChange={(e) => setForm({ ...form, is_visible: e.target.checked })} />
@@ -143,7 +214,7 @@ export default function AdminProblems() {
                     </label>
                     <div style={{ flex: 1 }} />
                     {editing && (
-                        <button onClick={() => { setEditing(null); setForm({ title: '', description: '', team_limit: 3, requirements: '', deliverables: '', evaluation_focus: '', resources: '', is_visible: false }); }} style={{
+                        <button onClick={resetForm} style={{
                             padding: '8px 18px', borderRadius: '6px', cursor: 'pointer',
                             background: 'transparent', border: '1px solid rgba(255,255,255,0.2)',
                             color: 'rgba(255,255,255,0.5)', fontFamily: "'Orbitron', sans-serif", fontSize: '0.6rem',
@@ -151,12 +222,13 @@ export default function AdminProblems() {
                             CANCEL
                         </button>
                     )}
-                    <button onClick={handleSave} style={{
-                        padding: '8px 24px', borderRadius: '6px', cursor: 'pointer',
+                    <button onClick={handleSave} disabled={uploading} style={{
+                        padding: '8px 24px', borderRadius: '6px', cursor: uploading ? 'wait' : 'pointer',
                         background: 'rgba(255,140,0,0.15)', border: '1px solid rgba(255,140,0,0.4)',
                         color: '#ff8c00', fontFamily: "'Orbitron', sans-serif", fontSize: '0.65rem', letterSpacing: '0.1em',
+                        opacity: uploading ? 0.6 : 1,
                     }}>
-                        {editing ? 'UPDATE' : 'ADD PROBLEM'}
+                        {uploading ? 'UPLOADING...' : editing ? 'UPDATE' : 'ADD PROBLEM'}
                     </button>
                 </div>
             </div>
@@ -183,6 +255,12 @@ export default function AdminProblems() {
                                     </span>
                                     <span>·</span>
                                     <span>{p.is_visible ? '👁 Visible' : '🚫 Hidden'}</span>
+                                    {p.document_name && (
+                                        <>
+                                            <span>·</span>
+                                            <span style={{ color: 'rgba(255,140,0,0.7)' }}>📄 {p.document_name}</span>
+                                        </>
+                                    )}
                                     {isFull && <span style={{ color: '#ff6b6b', fontFamily: "'Orbitron', sans-serif", fontSize: '0.55rem', letterSpacing: '0.1em' }}>FULL</span>}
                                 </div>
                             </div>

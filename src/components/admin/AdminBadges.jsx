@@ -41,7 +41,7 @@ export default function AdminBadges() {
 
         try {
             const [bgImg, logoImg] = await Promise.all([
-                loadImg('/badge_bg.png'),
+                loadImg('/badge_bg.jpeg'),
                 loadImg('/images/scrs-logo.png'),
             ]);
 
@@ -78,7 +78,7 @@ export default function AdminBadges() {
 
             for (let page = 0; page < totalPages; page++) {
                 if (page > 0) pdf.addPage();
-                pdf.setFillColor(5, 5, 12);
+                pdf.setFillColor(255, 255, 255);
                 pdf.rect(0, 0, pageW, pageH, 'F');
 
                 const pageTeams = teams.slice(page * teamsPerPage, (page + 1) * teamsPerPage);
@@ -95,7 +95,7 @@ export default function AdminBadges() {
                     const scale = bw / origW;
 
                     // Background image
-                    pdf.addImage(bgImg, 'PNG', bx, by, bw, bh);
+                    pdf.addImage(bgImg, 'JPEG', bx, by, bw, bh);
 
                     // SCRS logo (top-right, inward from border)
                     const logoW = bw * 0.12;
@@ -106,18 +106,18 @@ export default function AdminBadges() {
 
                     // === HEADER ===
                     pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(bw * 0.095); // Even bigger title
-                    pdf.setTextColor(255, 215, 0); // Yellow
+                    pdf.setFontSize(bw * 0.095);
+                    pdf.setTextColor(255, 255, 255); // White
                     pdf.text('DEVFEST 2.0 \u2013 KALKI', bx + bw * 0.12, by + bh * 0.23);
 
                     // Header underline 
-                    pdf.setDrawColor(255, 140, 0); // Orange
+                    pdf.setDrawColor(120, 70, 20); // Dark golden
                     pdf.setLineWidth(bw * 0.005);
                     pdf.line(bx + bw * 0.12, by + bh * 0.25, bx + bw * 0.45, by + bh * 0.25);
 
                     // === TEAM NAME label ===
-                    pdf.setFontSize(bw * 0.045); // Cyan
-                    pdf.setTextColor(0, 255, 255); // Brighter cyan
+                    pdf.setFontSize(bw * 0.045);
+                    pdf.setTextColor(255, 215, 0); // Yellow
                     pdf.text('TEAM NAME :', bx + bw * 0.12, by + bh * 0.36);
 
                     // === TEAM NAME value ===
@@ -128,42 +128,42 @@ export default function AdminBadges() {
 
                     // === TEAM CODE label ===
                     pdf.setFontSize(bw * 0.045);
-                    pdf.setTextColor(0, 255, 255); // Brighter cyan
+                    pdf.setTextColor(255, 215, 0); // Yellow
                     pdf.text('TEAM CODE :', bx + bw * 0.12, by + bh * 0.52);
 
                     // === TEAM CODE value ===
-                    pdf.setFontSize(bw * 0.12); // Much bigger code
+                    pdf.setFontSize(bw * 0.12);
                     pdf.setTextColor(255, 255, 255); // White
                     pdf.text(teamCode, bx + bw * 0.12, by + bh * 0.60);
 
                     // === Divider ===
-                    pdf.setDrawColor(200, 100, 0); // Faint orange line
+                    pdf.setDrawColor(150, 90, 20); // Dark golden line
                     pdf.setLineWidth(bw * 0.005);
                     pdf.line(bx + bw * 0.12, by + bh * 0.64, bx + bw * 0.84, by + bh * 0.64);
 
                     // === ACCESS LEVEL ===
-                    pdf.setFontSize(bw * 0.04);
-                    pdf.setTextColor(255, 180, 80); // Orange
+                    pdf.setFontSize(bw * 0.055);
+                    pdf.setTextColor(255, 215, 0); // Yellow labels
                     pdf.text('ACCESS LEVEL :', bx + bw * 0.12, by + bh * 0.70);
-                    pdf.setFontSize(bw * 0.055); // Bigger
-                    pdf.setTextColor(255, 215, 0); // Yellow
-                    pdf.text('BOUNTY HUNTER', bx + bw * 0.27, by + bh * 0.70);
+                    pdf.setFontSize(bw * 0.07);
+                    pdf.setTextColor(255, 255, 255); // White
+                    pdf.text('BOUNTY HUNTER', bx + bw * 0.35, by + bh * 0.70);
 
                     // === MISSION ===
-                    pdf.setFontSize(bw * 0.04);
-                    pdf.setTextColor(255, 180, 80);
-                    pdf.text('MISSION :', bx + bw * 0.12, by + bh * 0.75);
                     pdf.setFontSize(bw * 0.055);
                     pdf.setTextColor(255, 215, 0);
-                    pdf.text('INNOVATION', bx + bw * 0.21, by + bh * 0.75);
+                    pdf.text('MISSION :', bx + bw * 0.12, by + bh * 0.76);
+                    pdf.setFontSize(bw * 0.07);
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.text('INNOVATION', bx + bw * 0.27, by + bh * 0.76);
 
                     // === SECTOR ===
-                    pdf.setFontSize(bw * 0.04);
-                    pdf.setTextColor(255, 180, 80);
-                    pdf.text('SECTOR :', bx + bw * 0.12, by + bh * 0.80);
                     pdf.setFontSize(bw * 0.055);
                     pdf.setTextColor(255, 215, 0);
-                    pdf.text('SHAMBALA', bx + bw * 0.21, by + bh * 0.80);
+                    pdf.text('SECTOR :', bx + bw * 0.12, by + bh * 0.82);
+                    pdf.setFontSize(bw * 0.07);
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.text('SHAMBALA', bx + bw * 0.27, by + bh * 0.82);
 
                     // === Footer ===
                     // (Club name removed as requested)
@@ -246,32 +246,30 @@ export default function AdminBadges() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '25px' }}>
                         {teams.slice(0, 4).map(team => (
                             <div key={team.id} style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', aspectRatio: '97 / 92' }}>
-                                <img src="/badge_bg.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
-                                {/* Dark overlay for text readability */}
-                                <div style={{ position: 'absolute', top: '2%', left: '2%', right: '2%', bottom: '2%', background: 'rgba(0,0,0,0.3)', borderRadius: '4px' }} />
+                                <img src="/badge_bg.jpeg" alt="" style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
                                 {/* SCRS Logo - dropped down slightly from 12% to 19% */}
                                 <img src="/images/scrs-logo.png" alt="SCRS" style={{ position: 'absolute', top: '19%', right: '12%', width: '12%', height: 'auto', borderRadius: '50%' }} />
                                 {/* Text overlay */}
                                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontFamily: "'Orbitron', 'Rajdhani', sans-serif" }}>
                                     <div style={{ textAlign: 'left', paddingTop: '20%', paddingLeft: '11%' }}>
-                                        <div style={{ fontSize: 'clamp(11px, 2.5vw, 16px)', fontWeight: 900, color: '#ffd700', letterSpacing: '2px', textShadow: '0 0 15px rgba(0,0,0,1), 0 2px 4px rgba(0,0,0,1)' }}>
+                                        <div style={{ fontSize: 'clamp(11px, 2.5vw, 16px)', fontWeight: 900, color: '#fff', letterSpacing: '2px', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
                                             DEVFEST 2.0 – KALKI
                                         </div>
                                     </div>
                                     <div style={{ padding: '8% 16% 0 12%', textAlign: 'left' }}>
-                                        <div style={{ fontSize: '10px', color: '#0ff', letterSpacing: '1.5px', fontWeight: 700, textShadow: '0 0 8px rgba(0,0,0,1)' }}>TEAM NAME :</div>
-                                        <div style={{ fontSize: 'clamp(14px, 3.0vw, 24px)', fontWeight: 900, color: '#fff', letterSpacing: '2px', marginBottom: '2%', textShadow: '0 0 15px rgba(0,0,0,1), 0 2px 6px rgba(0,0,0,1)' }}>
+                                        <div style={{ fontSize: '10px', color: '#ffd700', letterSpacing: '1.5px', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>TEAM NAME :</div>
+                                        <div style={{ fontSize: 'clamp(14px, 3.0vw, 24px)', fontWeight: 900, color: '#fff', letterSpacing: '2px', marginBottom: '2%', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
                                             {(team.name || '').toUpperCase()}
                                         </div>
-                                        <div style={{ fontSize: '10px', color: '#0ff', letterSpacing: '1.5px', fontWeight: 700, textShadow: '0 0 8px rgba(0,0,0,1)' }}>TEAM CODE :</div>
-                                        <div style={{ fontSize: 'clamp(13px, 2.6vw, 22px)', fontWeight: 900, color: '#fff', letterSpacing: '3px', marginBottom: '3%', textShadow: '0 0 15px rgba(0,0,0,1)' }}>
+                                        <div style={{ fontSize: '10px', color: '#ffd700', letterSpacing: '1.5px', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>TEAM CODE :</div>
+                                        <div style={{ fontSize: 'clamp(13px, 2.6vw, 22px)', fontWeight: 900, color: '#fff', letterSpacing: '3px', marginBottom: '3%', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>
                                             {(team.team_code || '').toUpperCase()}
                                         </div>
-                                        <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, rgba(255,140,0,0.8), rgba(0,255,255,0.5), transparent)', marginBottom: '4%' }} />
+                                        <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, rgba(150,90,20,0.8), rgba(100,60,10,0.5), transparent)', marginBottom: '4%' }} />
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                                            <div><span style={{ fontSize: '9px', color: 'rgba(255,180,80,0.9)', letterSpacing: '1px' }}>ACCESS LEVEL : </span><span style={{ fontSize: '12px', fontWeight: 800, color: '#ffd700', letterSpacing: '1.5px', textShadow: '0 0 10px rgba(0,0,0,1)' }}>BOUNTY HUNTER</span></div>
-                                            <div><span style={{ fontSize: '9px', color: 'rgba(255,180,80,0.9)', letterSpacing: '1px' }}>MISSION : </span><span style={{ fontSize: '12px', fontWeight: 800, color: '#ffd700', letterSpacing: '1.5px', textShadow: '0 0 10px rgba(0,0,0,1)' }}>INNOVATION</span></div>
-                                            <div><span style={{ fontSize: '9px', color: 'rgba(255,180,80,0.9)', letterSpacing: '1px' }}>SECTOR : </span><span style={{ fontSize: '12px', fontWeight: 800, color: '#ffd700', letterSpacing: '1.5px', textShadow: '0 0 10px rgba(0,0,0,1)' }}>SHAMBALA</span></div>
+                                            <div><span style={{ fontSize: 'clamp(10px, 1.8vw, 14px)', color: '#ffd700', letterSpacing: '1px', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>ACCESS LEVEL : </span><span style={{ fontSize: 'clamp(11px, 2.0vw, 16px)', fontWeight: 900, color: '#fff', letterSpacing: '1.5px', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>BOUNTY HUNTER</span></div>
+                                            <div><span style={{ fontSize: 'clamp(10px, 1.8vw, 14px)', color: '#ffd700', letterSpacing: '1px', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>MISSION : </span><span style={{ fontSize: 'clamp(11px, 2.0vw, 16px)', fontWeight: 900, color: '#fff', letterSpacing: '1.5px', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>INNOVATION</span></div>
+                                            <div><span style={{ fontSize: 'clamp(10px, 1.8vw, 14px)', color: '#ffd700', letterSpacing: '1px', fontWeight: 700, textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>SECTOR : </span><span style={{ fontSize: 'clamp(11px, 2.0vw, 16px)', fontWeight: 900, color: '#fff', letterSpacing: '1.5px', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}>SHAMBALA</span></div>
                                         </div>
                                     </div>
                                     {/* Footer (Club name removed as requested) */}

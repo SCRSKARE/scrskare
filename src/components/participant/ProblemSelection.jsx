@@ -11,10 +11,9 @@ export default function ProblemSelection() {
     const [selConfig, setSelConfig] = useState({ is_open: false });
     const [search, setSearch] = useState('');
     const [confirmId, setConfirmId] = useState(null);
-    const [viewingProblem, setViewingProblem] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const filtered = problems.filter(p => p.title?.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase()));
+    const filtered = problems.filter(p => p.title?.toLowerCase().includes(search.toLowerCase()));
 
     useEffect(() => { loadData(); }, []);
 
@@ -53,7 +52,6 @@ export default function ProblemSelection() {
                 problem_id: problemId,
                 selected_at: new Date().toISOString(),
             });
-            setViewingProblem(null);
             setConfirmId(null);
             loadData();
         } catch (e) {
@@ -75,7 +73,8 @@ export default function ProblemSelection() {
         );
     }
 
-    if (mySelection && !viewingProblem) {
+    // After selection view — show title + download button
+    if (mySelection) {
         const p = problems.find(prob => prob.id === mySelection.problem_id);
         return (
             <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
@@ -92,32 +91,57 @@ export default function ProblemSelection() {
                 }}>
                     <h3 style={{
                         fontFamily: "'Orbitron', sans-serif", fontSize: '1.1rem', color: '#fff',
-                        letterSpacing: '0.05em', marginBottom: '15px',
+                        letterSpacing: '0.05em', marginBottom: '20px',
                     }}>
                         {p?.title || 'Unknown Problem'}
                     </h3>
-                    {[
-                        { label: 'Description', value: p?.description },
-                        { label: 'Requirements', value: p?.requirements },
-                        { label: 'Deliverables', value: p?.deliverables },
-                        { label: 'Evaluation Focus', value: p?.evaluation_focus },
-                        { label: 'Resources', value: p?.resources },
-                    ].filter((s) => s.value).map((s, i) => (
-                        <div key={i} style={{ marginBottom: '20px' }}>
-                            <div style={{
-                                fontFamily: "'Orbitron', sans-serif", fontSize: '0.7rem',
-                                color: 'rgba(0,255,255,0.5)', letterSpacing: '0.1em', marginBottom: '8px',
-                            }}>
-                                {s.label.toUpperCase()}
-                            </div>
-                            <div style={{
-                                fontFamily: "'Rajdhani', sans-serif", fontSize: '1rem',
-                                color: 'rgba(255,255,255,0.8)', lineHeight: '1.6', whiteSpace: 'pre-wrap',
-                            }}>
-                                {s.value}
-                            </div>
+
+                    {p?.document_data ? (
+                        <button
+                            onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = p.document_data;
+                                link.download = p.document_name || 'document';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }}
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '10px',
+                                padding: '12px 24px', borderRadius: '8px', cursor: 'pointer',
+                                background: 'rgba(0,255,255,0.1)', border: '1px solid rgba(0,255,255,0.35)',
+                                color: '#0ff', fontFamily: "'Orbitron', sans-serif", fontSize: '0.75rem',
+                                letterSpacing: '0.1em', transition: 'all 0.2s ease',
+                                boxShadow: '0 0 15px rgba(0,255,255,0.1)',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(0,255,255,0.2)';
+                                e.currentTarget.style.boxShadow = '0 0 25px rgba(0,255,255,0.25)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(0,255,255,0.1)';
+                                e.currentTarget.style.boxShadow = '0 0 15px rgba(0,255,255,0.1)';
+                            }}
+                        >
+                            <span style={{ fontSize: '1.2rem' }}>📄</span>
+                            DOWNLOAD DOCUMENT
+                            {p.document_name && (
+                                <span style={{
+                                    fontFamily: "'Rajdhani', sans-serif", fontSize: '0.85rem',
+                                    color: 'rgba(0,255,255,0.6)', fontWeight: 'normal',
+                                }}>
+                                    ({p.document_name})
+                                </span>
+                            )}
+                        </button>
+                    ) : (
+                        <div style={{
+                            fontFamily: "'Rajdhani', sans-serif", fontSize: '0.95rem',
+                            color: 'rgba(255,255,255,0.4)',
+                        }}>
+                            No document attached to this problem.
                         </div>
-                    ))}
+                    )}
                 </div>
             </div>
         );
@@ -170,17 +194,15 @@ export default function ProblemSelection() {
                                     border: `1px solid ${full ? 'rgba(255,50,50,0.2)' : 'rgba(0,255,255,0.12)'}`,
                                     borderRadius: '8px', padding: '20px',
                                     opacity: full ? 0.6 : 1, transition: 'all 0.2s ease',
-                                    cursor: 'pointer', display: 'flex', flexDirection: 'column'
-                                }}
-                                    onClick={() => setViewingProblem(p)}
-                                >
+                                    display: 'flex', flexDirection: 'column',
+                                }}>
                                     <h4 style={{
                                         fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem',
-                                        color: full ? 'rgba(255,255,255,0.5)' : '#fff', letterSpacing: '0.05em', marginBottom: '10px',
+                                        color: full ? 'rgba(255,255,255,0.5)' : '#fff', letterSpacing: '0.05em', marginBottom: '12px',
                                     }}>
                                         {p.title}
                                     </h4>
-                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '15px', alignItems: 'center' }}>
                                         <span style={{
                                             padding: '2px 10px', borderRadius: '10px', fontSize: '0.7rem',
                                             background: full ? 'rgba(255,50,50,0.15)' : 'rgba(0,255,100,0.1)',
@@ -193,14 +215,8 @@ export default function ProblemSelection() {
                                             {count}/{limit} teams
                                         </span>
                                     </div>
-                                    <p style={{
-                                        fontFamily: "'Rajdhani', sans-serif", fontSize: '0.9rem',
-                                        color: 'rgba(255,255,255,0.6)', lineHeight: '1.5',
-                                        display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-                                        overflow: 'hidden', marginBottom: '15px', flex: 1
-                                    }}>
-                                        {p.description}
-                                    </p>
+
+                                    <div style={{ flex: 1 }} />
 
                                     {full ? (
                                         <div style={{
@@ -210,6 +226,19 @@ export default function ProblemSelection() {
                                         }}>
                                             UNAVAILABLE
                                         </div>
+                                    ) : confirmId === p.id ? (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button onClick={() => selectProblem(p.id)} style={{
+                                                flex: 1, padding: '8px', borderRadius: '6px', cursor: 'pointer',
+                                                background: 'rgba(0,255,100,0.15)', border: '1px solid rgba(0,255,100,0.4)',
+                                                color: '#4ade80', fontFamily: "'Orbitron', sans-serif", fontSize: '0.55rem', letterSpacing: '0.08em',
+                                            }}>CONFIRM</button>
+                                            <button onClick={() => setConfirmId(null)} style={{
+                                                padding: '8px 12px', borderRadius: '6px', cursor: 'pointer',
+                                                background: 'rgba(255,50,50,0.1)', border: '1px solid rgba(255,50,50,0.3)',
+                                                color: '#ff6b6b', fontFamily: "'Orbitron', sans-serif", fontSize: '0.55rem',
+                                            }}>✕</button>
+                                        </div>
                                     ) : (
                                         <button
                                             style={{
@@ -217,10 +246,7 @@ export default function ProblemSelection() {
                                                 background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.25)',
                                                 color: '#0ff', fontFamily: "'Orbitron', sans-serif", fontSize: '0.65rem', letterSpacing: '0.1em',
                                             }}
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // prevent modal opening if just selecting
-                                                selConfig?.is_open && setConfirmId(p.id);
-                                            }}
+                                            onClick={() => selConfig?.is_open && setConfirmId(p.id)}
                                             disabled={!selConfig?.is_open}
                                         >SELECT</button>
                                     )}
@@ -238,111 +264,6 @@ export default function ProblemSelection() {
                         </div>
                     )}
                 </>
-            )}
-
-            {/* Glassmorphism Modal */}
-            {viewingProblem && (
-                <div style={{
-                    position: 'fixed', inset: 0, zIndex: 1000,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
-                    background: 'rgba(0, 5, 10, 0.7)', backdropFilter: 'blur(8px)',
-                }}>
-                    <div style={{
-                        background: 'rgba(0,20,40,0.6)', border: '1px solid rgba(0,255,255,0.3)',
-                        borderRadius: '12px', padding: '30px', maxWidth: '700px', width: '100%',
-                        maxHeight: '85vh', overflowY: 'auto', position: 'relative',
-                        boxShadow: '0 0 30px rgba(0,255,255,0.1)',
-                    }}>
-                        <button
-                            onClick={() => { setViewingProblem(null); setConfirmId(null); }}
-                            style={{
-                                position: 'absolute', top: '20px', right: '20px', background: 'transparent',
-                                border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '1.5rem', cursor: 'pointer',
-                            }}
-                        >
-                            ×
-                        </button>
-                        <h3 style={{
-                            fontFamily: "'Orbitron', sans-serif", fontSize: '1.2rem', color: '#fff',
-                            letterSpacing: '0.05em', marginBottom: '8px', paddingRight: '30px'
-                        }}>
-                            {viewingProblem.title}
-                        </h3>
-                        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', alignItems: 'center' }}>
-                            <span style={{
-                                padding: '2px 10px', borderRadius: '10px', fontSize: '0.7rem',
-                                background: getCount(viewingProblem.id) >= (parseInt(viewingProblem.category) || 999) ? 'rgba(255,50,50,0.15)' : 'rgba(0,255,100,0.1)',
-                                color: getCount(viewingProblem.id) >= (parseInt(viewingProblem.category) || 999) ? '#ff6b6b' : '#4ade80',
-                                fontFamily: "'Orbitron', sans-serif", letterSpacing: '0.05em',
-                            }}>
-                                {getCount(viewingProblem.id) >= (parseInt(viewingProblem.category) || 999) ? '🔒 FULL' : `${Math.max(0, (parseInt(viewingProblem.category) || 999) - getCount(viewingProblem.id))} SLOT${Math.max(0, (parseInt(viewingProblem.category) || 999) - getCount(viewingProblem.id)) !== 1 ? 'S' : ''} LEFT`}
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: "'Rajdhani', sans-serif" }}>
-                                {getCount(viewingProblem.id)}/{(parseInt(viewingProblem.category) || 999)} teams
-                            </span>
-                        </div>
-
-                        {[
-                            { label: 'Description', value: viewingProblem.description },
-                            { label: 'Requirements', value: viewingProblem.requirements },
-                            { label: 'Deliverables', value: viewingProblem.deliverables },
-                            { label: 'Evaluation Focus', value: viewingProblem.evaluation_focus },
-                            { label: 'Resources', value: viewingProblem.resources },
-                        ].filter((s) => s.value).map((s, i) => (
-                            <div key={i} style={{ marginBottom: '20px' }}>
-                                <div style={{
-                                    fontFamily: "'Orbitron', sans-serif", fontSize: '0.7rem',
-                                    color: '#0ff', letterSpacing: '0.1em', marginBottom: '8px',
-                                }}>
-                                    {s.label.toUpperCase()}
-                                </div>
-                                <div style={{
-                                    fontFamily: "'Rajdhani', sans-serif", fontSize: '1rem',
-                                    color: 'rgba(255,255,255,0.8)', lineHeight: '1.6', whiteSpace: 'pre-wrap',
-                                }}>
-                                    {s.value}
-                                </div>
-                            </div>
-                        ))}
-
-                        {!mySelection && selConfig?.is_open && (
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '30px' }}>
-                                {getCount(viewingProblem.id) >= (parseInt(viewingProblem.category) || 999) ? (
-                                    <div style={{
-                                        padding: '10px 20px', borderRadius: '6px', textAlign: 'center',
-                                        background: 'rgba(255,50,50,0.08)', border: '1px solid rgba(255,50,50,0.2)',
-                                        color: '#ff6b6b', fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', letterSpacing: '0.1em',
-                                    }}>
-                                        UNAVAILABLE
-                                    </div>
-                                ) : confirmId === viewingProblem.id ? (
-                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                        <button onClick={() => selectProblem(viewingProblem.id)} style={{
-                                            padding: '10px 20px', borderRadius: '6px', cursor: 'pointer',
-                                            background: 'rgba(0,255,100,0.15)', border: '1px solid rgba(0,255,100,0.4)',
-                                            color: '#4ade80', fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', letterSpacing: '0.1em',
-                                        }}>CONFIRM SELECTION</button>
-                                        <button onClick={() => setConfirmId(null)} style={{
-                                            padding: '10px 20px', borderRadius: '6px', cursor: 'pointer',
-                                            background: 'rgba(255,50,50,0.1)', border: '1px solid rgba(255,50,50,0.3)',
-                                            color: '#ff6b6b', fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', letterSpacing: '0.1em',
-                                        }}>CANCEL</button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => setConfirmId(viewingProblem.id)}
-                                        style={{
-                                            padding: '10px 30px', borderRadius: '6px', cursor: 'pointer',
-                                            background: 'rgba(0,255,255,0.1)', border: '1px solid rgba(0,255,255,0.4)',
-                                            color: '#0ff', fontFamily: "'Orbitron', sans-serif", fontSize: '0.8rem', letterSpacing: '0.1em',
-                                            boxShadow: '0 0 10px rgba(0,255,255,0.2)'
-                                        }}
-                                    >SELECT PROBLEM</button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
             )}
         </div>
     );
