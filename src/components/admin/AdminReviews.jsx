@@ -9,6 +9,7 @@ export default function AdminReviews() {
     const [form, setForm] = useState({ submission_id: '' });
     const [scores, setScores] = useState({});
     const [comments, setComments] = useState('');
+    const [comments2, setComments2] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState('');
 
@@ -62,6 +63,7 @@ export default function AdminReviews() {
         setForm({ submission_id: '' });
         setScores({});
         setComments('');
+        setComments2('');
     };
 
     const handleSubmit = async () => {
@@ -77,6 +79,7 @@ export default function AdminReviews() {
                 round,
                 scores,
                 comments: comments || '',
+                comments2: comments2 || '',
                 total_score: total,
                 reviewed_at: new Date().toISOString(),
             });
@@ -172,9 +175,15 @@ export default function AdminReviews() {
                     ))}
                 </div>
 
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={labelStyle}>COMMENTS</label>
-                    <textarea style={{ ...inputStyle, minHeight: '60px' }} value={comments} onChange={(e) => setComments(e.target.value)} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                    <div>
+                        <label style={labelStyle}>COMMENTS</label>
+                        <textarea style={{ ...inputStyle, minHeight: '60px' }} value={comments} onChange={(e) => setComments(e.target.value)} placeholder="General feedback..." />
+                    </div>
+                    <div>
+                        <label style={labelStyle}>ADDITIONAL COMMENTS</label>
+                        <textarea style={{ ...inputStyle, minHeight: '60px' }} value={comments2} onChange={(e) => setComments2(e.target.value)} placeholder="Suggestions, improvements..." />
+                    </div>
                 </div>
 
                 {message && (
