@@ -12,6 +12,7 @@ export default function AdminReviews() {
     const [comments2, setComments2] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState('');
+    const [selectedProblem, setSelectedProblem] = useState(null);
 
     const metrics = getEvalCriteria(round);
     const totalMax = metrics.reduce((a, m) => a + m.max, 0);
@@ -21,8 +22,10 @@ export default function AdminReviews() {
     useEffect(() => {
         if (form.submission_id) {
             loadPastComments(form.submission_id);
+            loadTeamProblem(form.submission_id);
         } else {
             setPastComments([]);
+            setSelectedProblem(null);
         }
     }, [form.submission_id, round]);
 
@@ -34,11 +37,31 @@ export default function AdminReviews() {
             const snap = await getDocs(q);
             const past = snap.docs
                 .map(d => d.data())
-                .filter(r => r.round < round && r.comments && r.comments.trim() !== '')
+                .filter(r => r.round < round)
                 .sort((a, b) => (b.round || 0) - (a.round || 0));
             setPastComments(past);
         } catch {
             setPastComments([]);
+        }
+    };
+
+    const loadTeamProblem = async (teamId) => {
+        try {
+            const selQ = query(collection(db, 'selections'), where('team_id', '==', teamId));
+            const selSnap = await getDocs(selQ);
+            if (!selSnap.empty) {
+                const selData = selSnap.docs[0].data();
+                if (selData.problem_id) {
+                    const probSnap = await getDoc(doc(db, 'problems', selData.problem_id));
+                    if (probSnap.exists()) {
+                        setSelectedProblem(probSnap.data());
+                        return;
+                    }
+                }
+            }
+            setSelectedProblem(null);
+        } catch {
+            setSelectedProblem(null);
         }
     };
 
@@ -64,6 +87,7 @@ export default function AdminReviews() {
         setScores({});
         setComments('');
         setComments2('');
+        setSelectedProblem(null);
     };
 
     const handleSubmit = async () => {
@@ -151,15 +175,48 @@ export default function AdminReviews() {
                             ))}
                         </select>
                     </div>
+                    {selectedProblem && (
+                        <div style={{ gridColumn: '1 / -1', background: 'rgba(0,255,255,0.04)', padding: '12px 18px', borderRadius: '6px', border: '1px solid rgba(0,255,255,0.15)', marginTop: '5px' }}>
+                            <h4 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.65rem', color: '#0ff', margin: '0 0 6px 0', letterSpacing: '0.05em' }}>SELECTED PROBLEM STATEMENT</h4>
+                            <div style={{ fontSize: '1rem', color: '#fff', fontFamily: "'Rajdhani', sans-serif", fontWeight: 600 }}>{selectedProblem.title}</div>
+                        </div>
+                    )}
                     {pastComments.length > 0 && (
                         <div style={{ gridColumn: '1 / -1', background: 'rgba(255,140,0,0.05)', padding: '12px 18px', borderRadius: '6px', border: `1px solid ${S.border}`, marginTop: '5px' }}>
-                            <h4 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.65rem', color: S.gold, margin: '0 0 10px 0', letterSpacing: '0.05em' }}>PAST ROUND COMMENTS (FOR THIS TEAM)</h4>
-                            {pastComments.map((pc, i) => (
-                                <div key={i} style={{ marginBottom: i < pastComments.length - 1 ? '10px' : 0, paddingBottom: i < pastComments.length - 1 ? '10px' : 0, borderBottom: i < pastComments.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
-                                    <div style={{ fontSize: '0.65rem', color: S.dim, fontFamily: "'Orbitron', sans-serif", marginBottom: '4px' }}>ROUND {pc.round}</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#fff', fontFamily: "'Rajdhani', sans-serif", fontStyle: 'italic' }}>"{pc.comments}"</div>
-                                </div>
-                            ))}
+                            <h4 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.65rem', color: S.gold, margin: '0 0 10px 0', letterSpacing: '0.05em' }}>PREVIOUS ROUND SCORES & COMMENTS</h4>
+                            {pastComments.map((pc, i) => {
+                                const roundMetrics = getEvalCriteria(pc.round);
+                                const roundTotalMax = roundMetrics.reduce((a, m) => a + m.max, 0);
+                                return (
+                                    <div key={i} style={{ marginBottom: i < pastComments.length - 1 ? '14px' : 0, paddingBottom: i < pastComments.length - 1 ? '14px' : 0, borderBottom: i < pastComments.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                            <div style={{ fontSize: '0.65rem', color: S.dim, fontFamily: "'Orbitron', sans-serif" }}>ROUND {pc.round} {pc.round === 1 ? '(PRELIMS)' : pc.round === 2 ? '(SEMIS)' : '(FINALS)'}</div>
+                                            <div style={{ fontSize: '0.75rem', fontFamily: "'Orbitron', sans-serif", color: S.gold, fontWeight: 700 }}>{pc.total_score || 0} / {roundTotalMax}</div>
+                                        </div>
+                                        {pc.scores && roundMetrics.length > 0 && (
+                                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                                {roundMetrics.map(m => (
+                                                    <span key={m.key} style={{
+                                                        padding: '3px 10px', borderRadius: '4px',
+                                                        background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)',
+                                                        fontSize: '0.75rem', fontFamily: "'Rajdhani', sans-serif", color: '#fff',
+                                                    }}>
+                                                        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.7rem' }}>{m.label}: </span>
+                                                        <strong style={{ color: '#0ff' }}>{pc.scores[m.key] || 0}</strong>
+                                                        <span style={{ color: 'rgba(255,255,255,0.3)' }}>/{m.max}</span>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {pc.comments && pc.comments.trim() !== '' && (
+                                            <div style={{ fontSize: '0.85rem', color: '#fff', fontFamily: "'Rajdhani', sans-serif", fontStyle: 'italic', marginBottom: pc.comments2 && pc.comments2.trim() !== '' ? '4px' : 0 }}>💬 "{pc.comments}"</div>
+                                        )}
+                                        {pc.comments2 && pc.comments2.trim() !== '' && (
+                                            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontFamily: "'Rajdhani', sans-serif", fontStyle: 'italic' }}>📝 "{pc.comments2}"</div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
