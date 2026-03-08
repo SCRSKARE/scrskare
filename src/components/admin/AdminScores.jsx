@@ -108,6 +108,63 @@ export default function AdminScores() {
             }
             if (!allReviews.length) return;
 
+            // Explicit alias map: maps every known score key variant → canonical label
+            // Built from actual Firestore data (18 unique keys → 11 canonical rubrics)
+            const SCORE_KEY_ALIASES = {
+                // Round 1 rubrics
+                'domain_relevance': 'Domain Relevance',
+                'feasibility': 'Feasibility',
+                'innovation_&_idea_strength': 'Innovation And Idea Strength',
+                'innovation_and_idea_strength': 'Innovation And Idea Strength',
+                'presentation': 'Presentation',
+                'presentation_clarity': 'Presentation',
+                'problem_understanding': 'Problem Understanding',
+                // Round 3 rubrics
+                'functionality_&_stability': 'Functionality And Stability',
+                'scalability_&_future_scope': 'Scalability And Future Scope',
+                'scalability_and_future_scope': 'Scalability And Future Scope',
+                'q&a_&_justication': 'Q And A Justification',
+                'q&a_and_justification': 'Q And A Justification',
+                'q_&_a_justification': 'Q And A Justification',
+                'ui/ux_&_usability': 'UI UX And Usability',
+                'ui_/_ux_&_usability': 'UI UX And Usability',
+                'business/user_impact': 'Business User Impact',
+                'bussiness_/_user_impact': 'Business User Impact',
+                'bussiness_or_user_impact': 'Business User Impact',
+            };
+
+            // Resolve any score key to its canonical label
+            const resolveLabel = (rawKey) => {
+                return SCORE_KEY_ALIASES[rawKey] || rawKey.replace(/[_/&]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim();
+            };
+
+            // Collect canonical labels PER ROUND
+            const labelsByRound = {};
+            allReviews.forEach(r => {
+                const rnd = r.round || 1;
+                if (!labelsByRound[rnd]) labelsByRound[rnd] = new Set();
+                if (r.scores && typeof r.scores === 'object') {
+                    Object.keys(r.scores).forEach(k => labelsByRound[rnd].add(resolveLabel(k)));
+                }
+            });
+
+            // Helper: build score columns for a review, using only specified labels
+            const buildScoreCols = (scores, allowedLabels) => {
+                const result = {};
+                allowedLabels.forEach(label => { result[label] = ''; });
+                if (scores && typeof scores === 'object') {
+                    for (const [key, val] of Object.entries(scores)) {
+                        const label = resolveLabel(key);
+                        if (label in result) {
+                            const existing = Number(result[label]) || 0;
+                            result[label] = existing + (Number(val) || 0);
+                        }
+                    }
+                }
+                return result;
+            };
+
+            // Combined Scores sheet (one row per team, no individual rubrics)
             const teamsMap = {};
             allReviews.forEach(r => {
                 const teamName = r.teamName || 'Unknown';
@@ -125,13 +182,24 @@ export default function AdminScores() {
             Object.values(teamsMap).forEach(t => { t['Combined Total'] = (t['R1 Total'] || 0) + (t['R2 Total'] || 0) + (t['R3 Total'] || 0); });
             const combinedData = Object.values(teamsMap).sort((a, b) => b['Combined Total'] - a['Combined Total']);
 
+            // Current round sheet — only use rubric labels from THIS round
+            const currentRoundLabels = [...(labelsByRound[round] || [])];
             const currentRoundReviews = allReviews.filter(r => r.round === round)
                 .sort((a, b) => b.total_score - a.total_score)
-                .map(r => ({ Team: r.teamName, 'Team Code': r.teamCode, 'Total Score': r.total_score, Comments: r.comments || '', ...(r.scores || {}) }));
+                .map(r => ({
+                    Team: r.teamName, 'Team Code': r.teamCode,
+                    'Total Score': r.total_score, Comments: r.comments || '',
+                    ...buildScoreCols(r.scores, currentRoundLabels)
+                }));
 
+            // All Detailed Reviews — use ALL rubric labels
+            const allLabels = new Set();
+            Object.values(labelsByRound).forEach(s => s.forEach(k => allLabels.add(k)));
+            const allLabelsArr = [...allLabels];
             const detailedData = allReviews.map(r => ({
                 Round: r.round, Team: r.teamName, 'Team Code': r.teamCode,
-                'Total Score': r.total_score, Comments: r.comments || '', ...(r.scores || {})
+                'Total Score': r.total_score, Comments: r.comments || '',
+                ...buildScoreCols(r.scores, allLabelsArr)
             })).sort((a, b) => a.Round - b.Round || b['Total Score'] - a['Total Score']);
 
             const wb = XLSX.utils.book_new();

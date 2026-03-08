@@ -148,14 +148,111 @@ export default function AdminReports() {
     const exportScores = async () => {
         setLoading('scores');
         try {
-            const snap = await getDocs(collection(db, 'reviews'));
-            const flat = [];
-            for (const d of snap.docs) {
+            const reviewsSnap = await getDocs(collection(db, 'reviews'));
+            const teamsSnap = await getDocs(collection(db, 'teams'));
+            const teamsMap = {};
+            teamsSnap.docs.forEach(d => {
+                const t = d.data();
+                teamsMap[d.id] = { name: t.name || '', team_code: t.team_code || '' };
+            });
+
+            // Normalize score keys: replace & with and, strip special chars, collapse spaces
+            const normalizeKey = (key) => {
+                return key
+                    .replace(/&/g, 'and')
+                    .replace(/[^a-zA-Z0-9_\s]/g, '')
+                    .replace(/\s+/g, '_')
+                    .toLowerCase()
+                    .replace(/_+/g, '_')
+                    .replace(/^_|_$/g, '');
+            };
+
+            // Make a readable label from a normalized key
+            const keyToLabel = (key) => {
+                return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            };
+
+            // Collect all reviews and find all unique NORMALIZED score keys
+            const allReviews = [];
+            const normalizedKeySet = new Set();
+            // Track original key -> normalized key mapping
+            const keyMapping = {};
+
+            for (const d of reviewsSnap.docs) {
                 const r = d.data();
-                let teamName = '';
-                try { if (r.team_id) { const t = await getDoc(doc(db, 'teams', r.team_id)); teamName = t.exists() ? t.data().name : ''; } } catch { }
-                flat.push({ team: teamName, judge: r.reviewer_name, total_score: r.total_score, ...r.scores, comments: r.comments });
+                allReviews.push({ ...r, docId: d.id });
+                if (r.scores && typeof r.scores === 'object') {
+                    Object.keys(r.scores).forEach(k => {
+                        const nk = normalizeKey(k);
+                        normalizedKeySet.add(nk);
+                        keyMapping[k] = nk;
+                    });
+                }
             }
+
+            // Ordered list of normalized keys for columns
+            const scoreColumns = [...normalizedKeySet];
+
+            // Group reviews by team_id
+            const teamReviews = {};
+            allReviews.forEach(r => {
+                const tid = r.team_id || 'unknown';
+                if (!teamReviews[tid]) teamReviews[tid] = [];
+                teamReviews[tid].push(r);
+            });
+
+            const flat = [];
+            // Sort teams by team code number
+            const sortedTeamIds = Object.keys(teamReviews).sort((a, b) => {
+                const codeA = teamsMap[a]?.team_code || '';
+                const codeB = teamsMap[b]?.team_code || '';
+                const numA = parseInt(codeA.split('-').pop()) || 0;
+                const numB = parseInt(codeB.split('-').pop()) || 0;
+                return numA - numB;
+            });
+
+            for (const tid of sortedTeamIds) {
+                const reviews = teamReviews[tid];
+                const teamInfo = teamsMap[tid] || { name: '', team_code: '' };
+
+                const row = {
+                    'Team': teamInfo.name,
+                    'Team Code': teamInfo.team_code,
+                    'Total Score': 0,
+                };
+
+                // Initialize all score columns to empty
+                scoreColumns.forEach(nk => { row[keyToLabel(nk)] = ''; });
+                row['Comments'] = '';
+
+                const commentsList = [];
+                let totalScore = 0;
+
+                for (const rev of reviews) {
+                    totalScore += (rev.total_score || 0);
+
+                    if (rev.scores && typeof rev.scores === 'object') {
+                        for (const [key, val] of Object.entries(rev.scores)) {
+                            const nk = normalizeKey(key);
+                            const label = keyToLabel(nk);
+                            const existing = Number(row[label]) || 0;
+                            row[label] = existing + (Number(val) || 0);
+                        }
+                    }
+
+                    const rnd = rev.round || '';
+                    if (rev.comments) commentsList.push(rnd ? `R${rnd}: ${rev.comments}` : rev.comments);
+                    if (rev.comments2) commentsList.push(rnd ? `R${rnd}: ${rev.comments2}` : rev.comments2);
+                }
+
+                row['Total Score'] = totalScore;
+                row['Comments'] = commentsList.join(' | ');
+                flat.push(row);
+            }
+
+            // Sort by total score descending
+            flat.sort((a, b) => (b['Total Score'] || 0) - (a['Total Score'] || 0));
+
             downloadExcel(flat, 'scores_summary.xlsx');
         } catch (error) {
             alert('Failed to export scores: ' + error.message);
