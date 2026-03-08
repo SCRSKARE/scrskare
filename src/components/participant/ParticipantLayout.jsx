@@ -128,7 +128,7 @@ export default function ParticipantLayout() {
 
             <main style={{
                 flex: 1, overflow: 'auto',
-                backgroundImage: 'url("/Kalki-2898Ad.jpg")', backgroundSize: 'cover',
+                backgroundImage: `url("${import.meta.env.BASE_URL}Kalki-2898Ad.jpg")`, backgroundSize: 'cover',
                 backgroundPosition: 'center', backgroundAttachment: 'fixed',
                 position: 'relative',
             }}>

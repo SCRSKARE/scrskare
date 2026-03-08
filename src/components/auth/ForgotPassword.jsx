@@ -31,7 +31,7 @@ export default function ForgotPassword() {
         }}>
             <div style={{
                 position: 'absolute', inset: 0,
-                backgroundImage: 'url("/Kalki-2898Ad.jpg")',
+                backgroundImage: `url("${import.meta.env.BASE_URL}Kalki-2898Ad.jpg")`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
             }} />
             <div style={{
