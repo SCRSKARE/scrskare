@@ -90,7 +90,7 @@ export default function LoginPage() {
                     position: 'absolute', inset: 0, width: '100%', height: '100%',
                     objectFit: 'cover', zIndex: 0,
                 }}
-                src="/videos/login-bg.mp4"
+                src={`${import.meta.env.BASE_URL}videos/login-bg.mp4`}
             />
             <div style={{
                 position: 'absolute', inset: 0, zIndex: 1,

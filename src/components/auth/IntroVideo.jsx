@@ -35,7 +35,7 @@ export default function IntroVideo({ onComplete }) {
         }}>
             <video
                 ref={videoRef}
-                src="/videos/intro.mp4"
+                src={`${import.meta.env.BASE_URL}videos/intro.mp4`}
                 muted
                 playsInline
                 style={{

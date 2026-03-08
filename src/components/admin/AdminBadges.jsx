@@ -246,9 +246,9 @@ export default function AdminBadges() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '25px' }}>
                         {teams.slice(0, 4).map(team => (
                             <div key={team.id} style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', aspectRatio: '97 / 92' }}>
-                                <img src="/badge_bg.jpeg" alt="" style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
+                                <img src={`${import.meta.env.BASE_URL}badge_bg.jpeg`} alt="" style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
                                 {/* SCRS Logo - dropped down slightly from 12% to 19% */}
-                                <img src="/images/scrs-logo.png" alt="SCRS" style={{ position: 'absolute', top: '19%', right: '12%', width: '12%', height: 'auto', borderRadius: '50%' }} />
+                                <img src={`${import.meta.env.BASE_URL}images/scrs-logo.png`} alt="SCRS" style={{ position: 'absolute', top: '19%', right: '12%', width: '12%', height: 'auto', borderRadius: '50%' }} />
                                 {/* Text overlay */}
                                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontFamily: "'Orbitron', 'Rajdhani', sans-serif" }}>
                                     <div style={{ textAlign: 'left', paddingTop: '20%', paddingLeft: '11%' }}>

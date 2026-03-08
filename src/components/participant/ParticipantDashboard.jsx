@@ -73,7 +73,7 @@ export default function ParticipantDashboard() {
                 <div style={{ marginBottom: '30px' }}>
                     <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '0.7rem', color: K.dim, letterSpacing: '0.4em', marginBottom: '12px' }}>PRESENTED BY</div>
                     <img
-                        src="/images/scrs-logo.png"
+                        src={`${import.meta.env.BASE_URL}images/scrs-logo.png`}
                         alt="SCRS"
                         style={{
                             width: '90px', height: '90px', borderRadius: '50%',

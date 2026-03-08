@@ -78,7 +78,7 @@ export default function PresentedBy() {
                 }}
             >
                 <img
-                    src="/images/scrs-logo.png"
+                    src={`${import.meta.env.BASE_URL}images/scrs-logo.png`}
                     alt="SCRS – Soft Computing Research Society"
                     style={{
                         width: '100%',
