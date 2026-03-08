@@ -39,7 +39,7 @@ import GlobalAudioPlayer from './components/common/GlobalAudioPlayer';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/scrskare">
       <AuthProvider>
         <GlobalAudioPlayer />
         <Routes>

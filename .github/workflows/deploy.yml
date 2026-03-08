@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env file
+        run: |
+          echo "VITE_FIREBASE_API_KEY=AIzaSyB9vPaPUTTTfO6gwmGv1iTAqMX6GbW6KTM" >> .env
+          echo "VITE_FIREBASE_AUTH_DOMAIN=devfest-kalki-portal.firebaseapp.com" >> .env
+          echo "VITE_FIREBASE_PROJECT_ID=devfest-kalki-portal" >> .env
+          echo "VITE_FIREBASE_STORAGE_BUCKET=devfest-kalki-portal.firebasestorage.app" >> .env
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=626611315415" >> .env
+          echo "VITE_FIREBASE_APP_ID=1:626611315415:web:4e612209e68f5deae48692" >> .env
+
+      - name: Build
+        run: npm run build
+
+      - name: Copy index.html as 404.html for SPA routing
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
